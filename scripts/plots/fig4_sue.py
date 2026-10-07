@@ -9,6 +9,7 @@ data = {
     "true-K128": {"macro": 46.6057, "energy": 0.605340},
 }
 
+base_macro = 38.625
 t1_macro = data["T1"]["macro"]
 t1_energy = data["T1"]["energy"]
 
@@ -16,7 +17,7 @@ labels = list(data.keys())
 values = []
 for name in labels:
     d = data[name]
-    sue = (d["macro"] / t1_macro) / (d["energy"] / t1_energy)
+    sue = ((d["macro"] - base_macro) / (t1_macro - base_macro)) / (d["energy"] / t1_energy)
     values.append(sue)
 
 fig, ax = plt.subplots(figsize=(8.2, 5.4))
@@ -64,5 +65,5 @@ ax.grid(True, axis="y", alpha=0.25)
 ax.set_xlim(-0.6, 2.6)
 ax.set_ylim(min(values) - 0.015, max(values) + 0.04)
 
-save(fig, "report_figures/out/figure4_sue.png")
-print("Saved: report_figures/out/figure4_sue.png")
+save(fig, "figs/sue.png")
+print("Saved: figs/sue.png")

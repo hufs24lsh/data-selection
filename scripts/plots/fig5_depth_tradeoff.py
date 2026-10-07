@@ -6,8 +6,8 @@ setup()
 data = [
     {"name": "K32",  "token_reduction": 66.82, "t1_overlap": 14.10},
     {"name": "K64",  "token_reduction": 59.42, "t1_overlap": 35.75},
-    {"name": "K128", "token_reduction": 46.92, "t1_overlap": 66.05},
-    {"name": "K256", "token_reduction": 29.14, "t1_overlap": 81.40},
+    {"name": "K128", "token_reduction": 46.92, "t1_overlap": 62.55},
+    {"name": "K256", "token_reduction": 29.14, "t1_overlap": 79.05},
 ]
 
 fig, ax = plt.subplots(figsize=(7.8, 5.6))
@@ -28,12 +28,12 @@ for d in data:
     )
 
 ax.set_xlabel("Scoring Token Reduction (%)")
-ax.set_ylabel("T1 Selection Overlap (%)")
+ax.set_ylabel("Raw-prefix T1 Selection Overlap (%)")
 ax.set_title("Prefix Depth Trade-off")
 ax.grid(True, alpha=0.3)
 
 ax.set_xlim(25, 70)
 ax.set_ylim(0, 90)
 
-save(fig, "report_figures/out/figure5_depth_tradeoff.png")
-print("Saved: report_figures/out/figure5_depth_tradeoff.png")
+save(fig, "figs/prefix_depth_tradeoff.png")
+print("Saved: figs/prefix_depth_tradeoff.png")

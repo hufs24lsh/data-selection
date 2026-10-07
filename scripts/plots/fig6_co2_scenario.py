@@ -3,7 +3,7 @@ from common import setup, save
 
 setup()
 
-EMISSION_FACTOR = 0.4173  # kgCO2eq / kWh
+EMISSION_FACTOR = 0.4541  # kgCO2eq / kWh
 
 t1_energy = 0.682982
 k256_energy = 0.644048
@@ -43,5 +43,5 @@ ax.set_title("Estimated Cumulative CO$_2$ Reduction")
 ax.grid(True, alpha=0.25)
 ax.legend(frameon=True)
 
-save(fig, "report_figures/out/figure6_co2_scenario.png")
-print("Saved: report_figures/out/figure6_co2_scenario.png")
+save(fig, "figs/co2_scaleout_scenario.png")
+print("Saved: figs/co2_scaleout_scenario.png")
