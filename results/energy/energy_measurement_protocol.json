@@ -1,0 +1,129 @@
+{
+  "baseline_full20k_scoring": {
+    "S1_role": "cross-check only",
+    "energy_status": "ESTIMATED_NOT_MEASURED",
+    "must_label_as_estimated_in_paper": true,
+    "preferred_estimator": "Use S3 random-1K full-response measurement. Separate fixed startup/model-loading overhead from token-dependent energy when observable, then extrapolate only the variable component by processed-token count to 20K.",
+    "rerun": false
+  },
+  "carbon_conversion": {
+    "agent_provided_fallback_if_not_superseded": {
+      "kgCO2eq_per_kWh": 0.4173,
+      "reference_year": 2023,
+      "status": "MUST_BE_EXTERNALLY_VERIFIED_BEFORE_REPORTING"
+    },
+    "coefficient_rule": "At final reporting time, verify the newest official Korean electricity emissions factor available from the relevant government source. Record factor value, reference year, publication date, and source. Carbon conversion is descriptive and cannot affect experimental decisions.",
+    "formula": "kgCO2eq = GPU_kWh * kgCO2eq_per_kWh",
+    "pue": 1.0
+  },
+  "compute_reporting": {
+    "parallelism_note": "Wall-clock savings from running base and calibration models concurrently must be distinguished from sequence-depth compute savings.",
+    "primary_algorithmic_metric": "processed model-input tokens / FLOPs-equivalent",
+    "primary_physical_metric": "gross GPU kWh",
+    "secondary_physical_metrics": [
+      "net GPU kWh after idle subtraction",
+      "wall-clock seconds",
+      "GPU kWh per 1M processed tokens"
+    ]
+  },
+  "cpu_ram_energy": {
+    "cpu_model": "AMD Ryzen Threadripper PRO 9965WX 24-Cores",
+    "included": false,
+    "reason": "No readable energy_uj counters were present under /sys/class/powercap during preflight."
+  },
+  "hardware": {
+    "driver_version": "595.71.05",
+    "gpus": [
+      {
+        "energy_counter_supported": true,
+        "index": 0,
+        "initial_energy_mJ_observation": 250879670673,
+        "initial_power_mW_observation": 20724,
+        "name": "NVIDIA GeForce RTX 5090"
+      },
+      {
+        "energy_counter_supported": true,
+        "index": 1,
+        "initial_energy_mJ_observation": 184193169115,
+        "initial_power_mW_observation": 22829,
+        "name": "NVIDIA GeForce RTX 5090"
+      }
+    ],
+    "nvml_version": "13.595.71.05"
+  },
+  "idle_baseline": {
+    "condition": "both GPUs have no compute process",
+    "duration_seconds": 300,
+    "gross_primary": true,
+    "net_definition": "gross stage GPU energy minus idle mean two-GPU board power multiplied by stage duration",
+    "net_secondary": true,
+    "rule_if_idle_window_not_available_before_S1": "Measure at the first later interval in which both GPUs are idle; do not delay or rerun a scientific stage solely for the idle baseline."
+  },
+  "integrity_rules": {
+    "do_not_change_thresholds_based_on_energy_results": true,
+    "do_not_modify_experiment_code_for_measurement": true,
+    "do_not_overwrite_existing_artifacts": true,
+    "do_not_rerun_stage_only_to_improve_energy_number": true,
+    "one_logger_only": true
+  },
+  "linked_shallow_prereg_sha256": "3ccd92496bf5a228bd8f0277ec34bed9b5518e60220e224c3e6f0b6d4b9b6890",
+  "logger": {
+    "backend": "pynvml / NVML only",
+    "csv_columns": [
+      "timestamp_utc",
+      "gpu0_energy_mJ",
+      "gpu1_energy_mJ",
+      "gpu0_power_mW",
+      "gpu1_power_mW",
+      "gpu0_util_pct",
+      "gpu1_util_pct",
+      "gpu0_mem_used_bytes",
+      "gpu1_mem_used_bytes"
+    ],
+    "cuda_initialization": false,
+    "per_process_loggers": false,
+    "python": "python",
+    "sampling_interval_seconds": 1.0,
+    "single_device_level_logger": true
+  },
+  "measurement_scope": "GPU_ONLY",
+  "method_comparison": {
+    "fullft_and_eval": "Report experiment energy transparently, but exclude from selection-scoring efficiency reduction because both methods require them.",
+    "warmup": "Common to original and Shallow methods; report separately and do not attribute it as a Shallow saving."
+  },
+  "primary_energy_measurement": {
+    "aggregation": "For every measured stage, gross GPU energy is the sum over GPU0 and GPU1 of cumulative energy counter END minus START.",
+    "power_sampling_role": "1 Hz board-power samples are diagnostic and cross-check only; they are not the primary energy estimate while cumulative counters work.",
+    "source": "nvmlDeviceGetTotalEnergyConsumption",
+    "unit": "mJ"
+  },
+  "shallow_scoring": {
+    "S2_raw_run": "Measured energy of the actual research run that computes response prefixes through 256.",
+    "deployment_cost": "Report separately from S2 raw research cost. Deployment depth is the frozen d_star chosen by the Shallow prereg stability rule.",
+    "no_claim_that_256_run_equals_deployment_cost_when_d_star_lt_256": true
+  },
+  "stage_boundary_rule": {
+    "end": "Immediately after the stage process(es) exit and output files are written.",
+    "included_overhead": [
+      "process startup",
+      "model loading",
+      "tokenization",
+      "data I/O",
+      "forward/training/evaluation",
+      "result serialization"
+    ],
+    "marker_file": "runs/shallow_instructdiff_v1_seed42/energy/stage_markers.csv",
+    "start": "Immediately before launching the measured stage process(es)."
+  },
+  "stages": {
+    "S1": "full_scoring_sample_200",
+    "S2": "prefix256_scoring_20K",
+    "S3": "full_scoring_sample_1K_optional_ablation",
+    "S4": "offline_selection_analysis",
+    "S5": "final_fullft",
+    "S6": "eval_math",
+    "S7": "eval_medical"
+  },
+  "status": "SHALLOW_INSTRUCTDIFF_V1_ENERGY_PROTOCOL_FROZEN",
+  "time_utc": "2026-10-07T07:42:00.267393+00:00"
+}

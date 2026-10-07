@@ -1,0 +1,46 @@
+{
+  "exploratory_status": "Designed after observing Shallow-v1, drift-v1, and calibration-gate diagnostics.",
+  "known_pre_freeze_primary_diagnostics": {
+    "T1_overlap": 1628,
+    "T1_overlap_fraction": 0.814,
+    "composition_math": 1771,
+    "composition_medical": 229,
+    "token_reduction_fraction": 0.2914
+  },
+  "no_post_training_selector_changes": true,
+  "primary_downstream_success": {
+    "T1_macro": 47.1,
+    "minimum_macro": 46.6
+  },
+  "primary_operating_point": {
+    "DeltaH": "parameter-free length-adaptive drift correction using cumulative depths 128 and 256",
+    "DeltaNLL": "raw prefix-256",
+    "K": 256,
+    "T1_membership_used_by_algorithm": false,
+    "correction": "if L<=256: H_hat=H_256; if L>256: H_hat=H_256 + (1-256/L)*(H_256-H_128)",
+    "domain_labels_used": false,
+    "learned_parameters": 0,
+    "selection": "global raw-prefix DeltaNLL stable sort, remove exact 2000 lowest and 2000 highest; then stable corrected-DeltaH sort and select exact 2000"
+  },
+  "secondary_operating_point": {
+    "K": 128,
+    "execution_decision_depends_on_K256_result": false,
+    "mechanism": "same asymmetric method: raw prefix-128 DeltaNLL + drift-corrected DeltaH from depths 64->128",
+    "purpose": "aggressive compute operating point / frontier analysis",
+    "status": "OPTIONAL_IF_TIME_PERMITS"
+  },
+  "seed": 42,
+  "source_artifacts": {
+    "T1_sha256": "f752cb618276438c0fd9b29c188d1ea329e7f3801ce55693b2365dcb6a3dc7c5",
+    "full_scores_sha256": "e3b742be324c237e5a2ae22ae3ce06c0e501837982238a4ad7c2ae783cba402e",
+    "s2_base_sha256": "1a4de5873e9061d5214bdeede4b9f4107ceb25ddee15ad1d6ed81737deb8154f",
+    "s2_calibration_sha256": "fa9c89d4dc82e82b518ee243dd535ace67b719dc74a21841e5485656b6510e34"
+  },
+  "status": "ASYMMETRIC_SHALLOW_V3_EXPLORATORY_FROZEN",
+  "supporting_calibration_gate": {
+    "not_part_of_primary_deployment_cost": true,
+    "result_sha256": "f05663ba6cf18755473b3fcc3073475b180c72dbe2df92b9e1220c7d0bac43b9",
+    "role": "supporting evidence that an independently frozen 500-example calibration gate selects the same raw-DeltaNLL / corrected-DeltaH asymmetry"
+  },
+  "time_utc": "2026-10-07T08:43:26.248065+00:00"
+}

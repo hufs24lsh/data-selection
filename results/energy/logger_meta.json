@@ -1,0 +1,12 @@
+{
+  "backend": "pynvml/NVML",
+  "cuda_initialized_by_logger": false,
+  "logger_script": "scripts/energy/energy_logger.py",
+  "logger_script_sha256": "f5a65742bb39bbbd016555fffadbb9c6a1a1db1ebe93ee53911e2ecc61a18f65",
+  "measurement_scope": "GPU_ONLY",
+  "protocol_sha256": "d0fe60258fce097511640167f50898c295fa5a0db5d02379095cd682c65a12c1",
+  "python": "python",
+  "sampling_interval_seconds": 1.0,
+  "status": "ENERGY_LOGGER_CREATED",
+  "time_utc": "2026-10-07T07:42:50.320403+00:00"
+}

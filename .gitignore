@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Models and checkpoints
+models/
+outputs/
+checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Runtime artifacts
+runs/
+*.log
+*.out
+
+# Evaluation outputs
+eval/results/
+eval/**/outputs/
+
+# Raw/local datasets
+data/*
+!data/README.md
+
+# Energy raw logs
+device_energy_1hz.csv
+
+# Temporary files
+tmp/
+temp/
+*.tmp

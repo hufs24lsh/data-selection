@@ -1,0 +1,18 @@
+-r requirements.txt
+
+# Official downstream evaluation environment
+# The experiment used PyTorch 2.11.0+cu130 and vLLM 0.26.0.
+torch
+transformers==5.17.0
+vllm==0.26.0
+ray
+datasets
+pandas
+pebble
+regex
+sympy
+mpmath
+timeout-decorator
+word2number
+multiprocess
+python-dateutil

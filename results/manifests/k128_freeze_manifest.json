@@ -1,0 +1,15 @@
+{
+  "study": "Asymmetric Shallow InstructDiff v3",
+  "variant": "implementation-aligned true-prefix K128",
+  "seed": 42,
+  "K": 128,
+  "forward_termination_depth": 128,
+  "selection_rule": {
+    "DeltaNLL": "raw prefix-128",
+    "DeltaH": "drift-corrected 64->128",
+    "filter": "global q10-q90",
+    "selected_count": 2000
+  },
+  "selected_sha256": "c382b4bc65388d3ff3140e4fb3d42eafd6149d6b275974872ee30afdfec245f2",
+  "downstream_evaluation_seen_before_freeze": false
+}

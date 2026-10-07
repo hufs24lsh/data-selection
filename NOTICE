@@ -1,0 +1,25 @@
+ShallowFrontier
+
+This repository contains ShallowFrontier-specific research code and
+reproducibility artifacts for energy-efficient LLM training-data selection.
+
+ShallowFrontier builds on the InstructDiff framework:
+
+  InstructDiff: Domain-Adaptive Data Selection via Differential Entropy
+  for Efficient LLM Fine-Tuning
+
+Official upstream repository:
+  https://github.com/zhuchichi56/Instruct-diff
+
+Original InstructDiff authors retain attribution for upstream framework
+and evaluation components incorporated or adapted in this repository.
+
+The Math evaluation code under eval/math_evaluation retains its own
+upstream license notice in that directory.
+
+ShallowFrontier-specific contributions include prefix-limited candidate
+scoring, asymmetric prefix extrapolation, matched selection-stage cost
+measurement, GPU energy analysis, and the K128/K256 experiments.
+
+This NOTICE is an attribution record and does not replace licenses
+applicable to individual upstream components.

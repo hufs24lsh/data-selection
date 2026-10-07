@@ -1,0 +1,20 @@
+{
+  "counter_implied_mean_two_gpu_power_W": 46.95324080267559,
+  "duration_requested_seconds": 300,
+  "end_utc": "2026-10-07T07:48:55.939+00:00",
+  "gpu0_energy_mJ": 6411613,
+  "gpu1_energy_mJ": 7627406,
+  "gross_energy_kWh": 0.0038997275,
+  "gross_energy_mJ": 14039019,
+  "logger_samples": 300,
+  "primary_idle_power_W": 46.95324080267559,
+  "primary_idle_power_source": "NVML cumulative energy counter difference",
+  "protocol_sha256": "d0fe60258fce097511640167f50898c295fa5a0db5d02379095cd682c65a12c1",
+  "sample_duration_seconds": 299.0,
+  "sampled_mean_gpu0_power_W": 18.71997666666666,
+  "sampled_mean_gpu1_power_W": 21.158260000000013,
+  "sampled_mean_two_gpu_power_W": 39.87823666666666,
+  "scope": "GPU_ONLY",
+  "start_utc": "2026-10-07T07:43:55.537+00:00",
+  "status": "PASS"
+}

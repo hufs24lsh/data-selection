@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Final ShallowFrontier training environment
+# CUDA-specific PyTorch wheels should be installed for the target system.
+torch
+transformers==4.47.1
+peft
+fire
+bitsandbytes==0.50.2

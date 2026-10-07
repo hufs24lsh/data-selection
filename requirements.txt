@@ -1,0 +1,6 @@
+# Shared lightweight dependencies
+numpy
+tqdm
+matplotlib
+PyYAML
+nvidia-ml-py

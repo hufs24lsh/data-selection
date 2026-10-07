@@ -1,0 +1,20 @@
+{
+  "name": "shallowfrontier_k256",
+  "model": "outputs/k256/model",
+  "math": {
+    "math_oai": 59.2,
+    "minerva_math": 18.70625,
+    "olympiadbench": 22.418749999999996,
+    "aime24": 6.25,
+    "amc23": 32.8125,
+    "avg": 27.877499999999998
+  },
+  "medical": {
+    "medqa": 61.743912018853095,
+    "mmlu_medical": 76.52427893391749,
+    "medmcqa": 58.235715993306236,
+    "avg": 65.50130231535893
+  },
+  "macro": 46.68940115767946,
+  "worst_domain": 27.877499999999998
+}

@@ -1,0 +1,44 @@
+{
+  "accounting": {
+    "Full20K": [
+      "FULL20K_FT"
+    ],
+    "K128": [
+      "COMMON_CALIBRATION_FT",
+      "K128_MATCHED_SCORING",
+      "K128_SELECTOR_CPU",
+      "K128_FINAL2K_FT"
+    ],
+    "K256": [
+      "COMMON_CALIBRATION_FT",
+      "existing S2 K256 matched scoring",
+      "K256_SELECTOR_CPU",
+      "existing S5 K256 final2K FT"
+    ],
+    "T1": [
+      "COMMON_CALIBRATION_FT",
+      "T1_MATCHED_FULL_SCORING",
+      "T1_SELECTOR_CPU",
+      "T1_FINAL2K_FT"
+    ],
+    "official_evaluation": "excluded from primary training-cost accounting"
+  },
+  "files": {
+    "runs/cost_matched_v1/prefix128_score.py": "5b0877abbaa38afc3e3279e34c4bffa4d10f1ac958ebff6a6606437c47480c9f",
+    "runs/cost_matched_v1/run_k128_scoring.sh": "f21831d4c1de53b1fa358ddd2a5f926244b9de2c0871193c74b190fbf58b7187",
+    "runs/cost_matched_v1/run_t1_full_scoring.sh": "bd59fce6d591995eab4e5255c0987715619265f64aebe2bb7d7c0eca338bebe7",
+    "runs/cost_matched_v1/select_from_scores.py": "b2faee93df56422e98d0b7627ef19a5170a75079bdc4b13a3030aba10d7d9478",
+    "runs/cost_matched_v1/train_common_calibration.py": "d4a8380369375c5d8fdd9890598478f920ad3dade88dce2f65224952c53421ab",
+    "runs/cost_matched_v1/train_t1_final2k.py": "17fa7c2152993ce78f2722805add57c63add60121fac15d259380fa9a9d289fa",
+    "runs/mixed_20k_qwen7b_seed42_unified/iter_1/selected.jsonl": "f752cb618276438c0fd9b29c188d1ea329e7f3801ce55693b2365dcb6a3dc7c5",
+    "runs/mixed_20k_qwen7b_seed42_unified/iter_1/warmup_subset.jsonl": "ada4cb631860df9039fb4aced93ef56fba2ab92ceb723f993fb70d2ede2a0326",
+    "scripts/asymmetric_shallow_v3/eval_k128_official.sh": "ccb936bf57ca27c6751dda1f3ac93cd51a7d30de0ea027270025381405b08355",
+    "scripts/asymmetric_shallow_v3/train_k128_fullft.py": "7285974f0e63eee1f386a5cd2d5f8b4a2c64fffec7ec8cf255a324ad94cae638",
+    "scripts/cost_reruns/launch_full20k_cost.sh": "82f10df7b7204d1fbfaf1a7829d12fbcf27bf20b3b21e32c405650cebe7d384c",
+    "scripts/shallow_instructdiff_v1/prefix256_score.py": "111cc93b071396d6d5043b289d8eccac2c787ae7acb21403aac920c8b2205b03"
+  },
+  "scoring_topology": "two concurrent independent processes; base on GPU0 and historical T1 calibration model on GPU1",
+  "seed": 42,
+  "status": "TOPOLOGY_MATCHED_COMPONENT_COST_PROTOCOL_FROZEN",
+  "time_utc": "2026-10-07T09:53:49.396515+00:00"
+}
