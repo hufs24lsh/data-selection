@@ -10,9 +10,13 @@ datasets
 pandas
 pebble
 regex
-sympy
+sympy==1.12
+antlr4-python3-runtime==4.11.1
 mpmath
 timeout-decorator
 word2number
 multiprocess
 python-dateutil
+
+# Bundled Math evaluator dependency; run pip from the repository root.
+-e ./eval/math_evaluation/latex2sympy

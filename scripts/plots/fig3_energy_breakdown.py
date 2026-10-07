@@ -36,5 +36,5 @@ ax.legend(frameon=True)
 
 ax.set_ylim(0.12, 0.31)
 
-save(fig, "report_figures/out/figure3_energy_breakdown.png")
-print("Saved: report_figures/out/figure3_energy_breakdown.png")
+save(fig, "figs/stagewise_energy.png")
+print("Saved: figs/stagewise_energy.png")

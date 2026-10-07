@@ -47,6 +47,12 @@ Both ShallowFrontier configurations satisfy the frozen utility criterion:
 
 **Macro >= 46.60**
 
+This criterion was defined as the T1 reference Macro score
+`47.10 - 0.50 = 46.60`, allowing at most a 0.50 Macro-point decrease
+(about 1.06% of T1). It is an operational utility-preservation tolerance,
+not a statistical-significance threshold or field-wide standard, and was
+frozen before the official K256 downstream evaluation.
+
 ### Compute and Energy
 
 | Method | Scoring-token reduction vs T1 | E2E GPU energy | Energy reduction vs T1 |
@@ -151,6 +157,38 @@ The correction is applied only to ΔH.
 
 ## Reproduction
 
+Run all commands below from the **repository root**.
+
+### 0. Environment Setup
+
+Core / training environment:
+
+```bash
+python -m pip install -r requirements-train.txt
+```
+
+Evaluation environment:
+
+```bash
+python -m pip install -r requirements-eval.txt
+```
+
+The evaluation requirements install the bundled `latex2sympy2`
+implementation used by the Math evaluator. For exact reproduction,
+use Python 3.10 and CUDA-compatible PyTorch/vLLM builds matching the
+versions documented in `docs/reproducibility.md`.
+
+Release-integrity checks can be run without a GPU:
+
+```bash
+python -m pip install -r requirements-dev.txt
+ruff check --select F821 scripts tests
+python -m pytest -q tests
+```
+
+The same checks are executed by GitHub Actions on every push and pull
+request.
+
 ### 1. Base Model
 
 The experiments use:
@@ -184,7 +222,34 @@ Random seed:
 42
 ```
 
-Large raw datasets are not duplicated in this repository. Dataset provenance and preparation instructions are documented separately.
+Large raw datasets and the mixed 20K candidate-pool file are not redistributed in this repository.
+
+To rerun candidate scoring and selection, provide the exact pool at:
+
+```text
+data/mixed/math10k_med10k_seed42.jsonl
+```
+
+with SHA-256:
+
+```text
+3c31c43d47065b1b850568588ae17fdd06e7b9f8e7f9f819a812d459b54b1f05
+```
+
+The exact final K256 and K128 selected 2K training sets are included in
+`results/selections/`, so final fine-tuning can be reproduced without
+reconstructing the 20K pool.
+
+Full selection-stage reproduction additionally requires the base model
+and a calibration model produced with the frozen T1 warmup recipe.
+The warmup subset used by the study has SHA-256:
+
+```text
+ada4cb631860df9039fb4aced93ef56fba2ab92ceb723f993fb70d2ede2a0326
+```
+
+See `data/README.md` and `docs/reproducibility.md` for the frozen hashes,
+training recipe, and experiment scope.
 
 ### 3. Prefix Scoring
 
@@ -211,17 +276,31 @@ using raw ΔNLL filtering followed by corrected ΔH ranking.
 
 ### 5. Final Full Fine-Tuning
 
+The public training entrypoints intentionally enforce the execution
+topology used by the frozen experiment: two visible GPUs, a single
+Python process, and the recorded CUDA allocator setting.
+
 K256:
 
 ```bash
+CUDA_VISIBLE_DEVICES=0,1 \
+WORLD_SIZE=1 \
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 python scripts/training/train_k256_fullft.py
 ```
 
 K128:
 
 ```bash
+CUDA_VISIBLE_DEVICES=0,1 \
+WORLD_SIZE=1 \
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 python scripts/training/train_k128_fullft.py
 ```
+
+`LOCAL_RANK`, `RANK`, `MASTER_ADDR`, and `MASTER_PORT` must remain unset.
+The scripts also verify the selected-set SHA, row count, TF32 state, and
+resolved training arguments before marking a run complete.
 
 The frozen training recipe is:
 
@@ -262,6 +341,23 @@ The aggregate metric is:
 ```text
 Macro = (Math Average + Medical Average) / 2
 ```
+
+After activating the evaluation environment, run:
+
+```bash
+bash scripts/evaluation/eval_k256_official.sh
+```
+
+or:
+
+```bash
+bash scripts/evaluation/eval_k128_official.sh
+```
+
+The official wrappers verify the frozen evaluator files before launching
+Math and Medical evaluation. The Math wrapper internally invokes
+`python3`, so `python` and `python3` should resolve to the same activated
+evaluation environment.
 
 ---
 

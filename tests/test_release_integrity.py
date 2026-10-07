@@ -95,6 +95,113 @@ def test_python_syntax():
             py_compile.compile(str(p), doraise=True)
 
 
+def test_selector_expected_hashes_match_published_sets():
+    text = (
+        ROOT / "scripts" / "selection" / "select_from_scores.py"
+    ).read_text()
+
+    expected = {
+        256:
+            "61411aeffad57e5662b861a887de114b49138525f12e41ab2a39e7d555028a22",
+        128:
+            "c382b4bc65388d3ff3140e4fb3d42eafd6149d6b275974872ee30afdfec245f2",
+    }
+
+    for wanted in expected.values():
+        assert wanted in text
+
+    assert (
+        "c7dbfe7d323649b8e7bf00bd5395160936c9e4a955e9d6ceb07047e24c45b4e9"
+        not in text
+    )
+
+
+def test_official_eval_guards_match_public_evaluators():
+    evaluator_paths = {
+        "EXPECTED_RUN_ALL_SHA":
+            ROOT / "eval" / "run_all_eval.py",
+        "EXPECTED_MATH_SHA":
+            ROOT / "eval" / "math_evaluation" / "sh" / "eval.sh",
+        "EXPECTED_MED_SHA":
+            ROOT / "eval" / "medeval" / "vllm_medical_test.py",
+    }
+
+    for wrapper_name in [
+        "eval_k256_official.sh",
+        "eval_k128_official.sh",
+    ]:
+        wrapper = (
+            ROOT / "scripts" / "evaluation" / wrapper_name
+        ).read_text()
+
+        for variable, evaluator in evaluator_paths.items():
+            wanted = sha256(evaluator)
+            pattern = rf'{variable}="([0-9a-f]{{64}})"'
+            match = re.search(pattern, wrapper)
+
+            assert match is not None, (
+                f"{wrapper_name}: missing {variable}"
+            )
+            assert match.group(1) == wanted, (
+                f"{wrapper_name}: stale {variable}: "
+                f"{match.group(1)} != {wanted}"
+            )
+
+
+def test_public_reproduction_paths_and_guards():
+    energy_script = (
+        ROOT / "scripts" / "energy" / "measure_idle_baseline.py"
+    ).read_text()
+
+    assert (
+        'PROTOCOL = ROOT / '
+        '"results/energy/energy_measurement_protocol.json"'
+        in energy_script
+    )
+
+    protocol = (
+        ROOT / "results" / "energy"
+        / "energy_measurement_protocol.json"
+    )
+
+    assert protocol.is_file()
+    assert sha256(protocol) == (
+        "b52f3a4a2dc83254ff63f0c16f6553934c7b3bf94949e2fa7bdd2a9571d9e350"
+    )
+
+    eval_requirements = (
+        ROOT / "requirements-eval.txt"
+    ).read_text()
+
+    for token in [
+        "sympy==1.12",
+        "antlr4-python3-runtime==4.11.1",
+        "-e ./eval/math_evaluation/latex2sympy",
+    ]:
+        assert token in eval_requirements
+
+    readme = (ROOT / "README.md").read_text()
+
+    for token in [
+        "Run all commands below from the **repository root**.",
+        "CUDA_VISIBLE_DEVICES=0,1",
+        "WORLD_SIZE=1",
+        "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+        "bash scripts/evaluation/eval_k256_official.sh",
+        "bash scripts/evaluation/eval_k128_official.sh",
+        "47.10 - 0.50 = 46.60",
+    ]:
+        assert token in readme
+
+    plot = (
+        ROOT / "scripts" / "plots"
+        / "fig3_energy_breakdown.py"
+    ).read_text()
+
+    assert 'save(fig, "figs/stagewise_energy.png")' in plot
+    assert "report_figures/out" not in plot
+
+
 if __name__ == "__main__":
     tests = [
         test_training_scripts_have_no_stale_t1_args_reference,
@@ -103,6 +210,9 @@ if __name__ == "__main__":
         test_readme_local_images_exist,
         test_no_personal_absolute_paths,
         test_python_syntax,
+        test_selector_expected_hashes_match_published_sets,
+        test_official_eval_guards_match_public_evaluators,
+        test_public_reproduction_paths_and_guards,
     ]
 
     for test in tests:
