@@ -118,11 +118,6 @@ require(
 require(DATA.is_file(), f"missing data: {DATA}")
 require(BASE.is_dir(), f"missing base: {BASE}")
 require(
-    ORIGINAL_T1_ARGS.is_file(),
-    f"missing T1 args: {ORIGINAL_T1_ARGS}",
-)
-
-require(
     sha256_file(DATA) == EXPECTED_DATA_SHA,
     "selected data SHA mismatch",
 )
