@@ -115,4 +115,12 @@ reference year, publication date, and whether it is average or marginal grid
 intensity. The placeholder `0.4173 kgCO2eq/kWh` inside the public protocol is
 explicitly marked unverified and must not be used as a final reported factor.
 
+The release's CO2 scale-out script historically used
+`0.4541 kgCO2eq/kWh`. The numerical factor is preserved for reproducibility,
+but its source, reference year, and publication date are not preserved in the
+public artifacts. Its status is therefore recorded as
+`UNVERIFIED_PUBLIC_PROVENANCE` in
+`results/energy/carbon_factor_status.json`. This audit does not invent the
+missing citation.
+
 Any scale-out CO2 figure is a scenario estimate, not a measured emission.
