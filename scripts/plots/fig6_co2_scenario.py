@@ -2,8 +2,7 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-
-from common import save, setup
+from common import METHOD_COLORS, save, setup
 
 setup()
 
@@ -27,8 +26,22 @@ k128_saved = [save_per_run_k128 * r for r in runs]
 
 fig, ax = plt.subplots(figsize=(7.8, 5.3))
 
-ax.plot(runs, k256_saved, marker="o", linewidth=1.8, label="K256 vs T1")
-ax.plot(runs, k128_saved, marker="o", linewidth=1.8, label="true-K128 vs T1")
+ax.plot(
+    runs,
+    k256_saved,
+    marker="o",
+    linewidth=2.0,
+    color=METHOD_COLORS["K256"],
+    label="K256 vs T1",
+)
+ax.plot(
+    runs,
+    k128_saved,
+    marker="o",
+    linewidth=2.0,
+    color=METHOD_COLORS["K128"],
+    label="K128 vs T1",
+)
 
 ax.annotate(
     f"{k256_saved[-1]:.2f} kg",
@@ -47,9 +60,12 @@ ax.annotate(
 
 ax.set_xlabel("Number of repeated runs")
 ax.set_ylabel("Avoided CO$_2$eq (kg)")
-ax.set_title("Scenario: Cumulative Operational CO$_2$eq Reduction")
+ax.set_title(
+    "Scenario: Cumulative Operational CO$_2$eq Reduction",
+    fontweight="bold",
+)
 ax.grid(True, alpha=0.25)
-ax.legend(frameon=True)
+ax.legend(frameon=False)
 
 fig.text(
     0.5,

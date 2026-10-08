@@ -68,7 +68,7 @@ E2E energy includes the matched GPU stages:
 Official downstream evaluation energy is excluded from this comparison.
 
 <p align="center">
-  <img src="figs/performance_energy_pareto.png" width="68%">
+  <img src="figs/scoring_cost_utility.png" width="68%">
 </p>
 
 ---
@@ -409,7 +409,7 @@ scripts/energy/aggregate_energy.py
 ```
 
 With the recovered counters, linear interpolation at stage boundaries and
-46.953 W idle adjustment reproduce the frozen T1, K256, and true-K128 gross
+46.953 W idle adjustment reproduce the frozen T1, K256, and K128 gross
 and idle-adjusted E2E GPU energy values within `1e-9 kWh`.
 
 This establishes numerical reconstruction on the historical server, not
@@ -498,8 +498,21 @@ The scale-out plot is a scenario based on the measured per-run GPU-energy differ
   reproducible from public artifacts.
 - Energy raw logs for the reported runs are not currently public; see
   `docs/energy_provenance.md`.
-- Licensing status is documented in `docs/licensing.md`; no unsupported
-  repository-wide relicensing is asserted.
+- License scope and upstream attribution are documented below.
+
+---
+
+## License and Third-Party Code
+
+Original ShallowFrontier contributions are offered under the
+[MIT License](LICENSE), to the extent owned by the named copyright
+holder. This does **not** relicense inherited InstructDiff code,
+third-party evaluation components, or datasets and research
+artifacts.
+
+See [Licensing and Attribution](docs/licensing.md) and
+[NOTICE](NOTICE) for scope, existing component licenses,
+and unresolved upstream permissions.
 
 ---
 

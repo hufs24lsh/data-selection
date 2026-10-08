@@ -250,7 +250,7 @@ but is not redistributed in the public repository.
 
 Reaggregation of seven complete historical stages using linear interpolation
 at marker boundaries and 46.953 W idle adjustment reproduces the frozen
-T1/K256/true-K128 gross and idle-adjusted E2E GPU energy values within
+T1/K256/K128 gross and idle-adjusted E2E GPU energy values within
 `1e-9 kWh`.
 
 This is an on-server numerical reconstruction, not public-only sample-level

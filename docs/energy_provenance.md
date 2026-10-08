@@ -113,7 +113,7 @@ frozen matched E2E gross and idle-adjusted values within `1e-9 kWh`.
 |---|---:|---:|
 | T1 | 0.682982462952126 | 0.682982462933451 |
 | K256 | 0.644047837541385 | 0.644047837532730 |
-| true-K128 | 0.605340396994137 | 0.605340396994129 |
+| K128 | 0.605340396994137 | 0.605340396994129 |
 
 The historical idle-baseline measurement recorded
 `46.95324080267559 W`. The frozen idle-adjusted results are numerically

@@ -1,60 +1,94 @@
-# Licensing and Upstream Attribution Audit
+# Licensing and Attribution
 
-This note documents the licensing state observed during the public-release
-audit. It is not legal advice.
+## Scope of the Root License
 
-## Repository-level status
+The root [`LICENSE`](../LICENSE) makes the original, copyrightable
+ShallowFrontier contributions available under the MIT License,
+**only to the extent that the named copyright holder owns those
+rights and has authority to license them**.
 
-The ShallowFrontier repository currently has no top-level `LICENSE` file.
+This includes independently authored project-specific source
+code and documentation, such as original functionality in
+`scripts/`, `tests/`, and project documentation.
 
-The upstream InstructDiff README displays an MIT-license badge linking to a
-root `LICENSE`, but the current upstream repository does not expose that root
-`LICENSE` file through the GitHub contents API. Because the underlying
-license text is missing, this audit does not infer or recreate a project-wide
-license for adapted InstructDiff code.
+This is **not a blanket MIT license for the entire repository**.
+Where files incorporate or adapt third-party material, the MIT
+grant covers only the independently owned ShallowFrontier
+contributions, not the underlying third-party code.
 
-Accordingly, the ShallowFrontier repository should **not** add a blanket
-project-wide license that purports to relicense upstream-derived files unless
-the relevant rights and upstream license text are first verified.
+## Upstream InstructDiff Code
 
-## Components with explicit licenses
+ShallowFrontier builds on:
 
-The vendored Math evaluator retains an MIT license under:
+[InstructDiff: Domain-Adaptive Data Selection via Differential
+Entropy for Efficient LLM Fine-Tuning](https://github.com/zhuchichi56/Instruct-diff)
 
-```text
-eval/math_evaluation/LICENSE
-```
+The public upstream README identifies MIT through a license
+badge, but the linked root `LICENSE` file was not present
+in the upstream repository during this audit.
 
-The bundled `latex2sympy` component also retains its MIT license under:
+The exact upstream license grant for the adapted source
+therefore remains to be verified. The root ShallowFrontier
+license does not resolve this uncertainty or relicense
+upstream-derived code.
 
-```text
-eval/math_evaluation/latex2sympy/LICENSE.txt
-```
+The release includes code inherited from or adapted around
+InstructDiff, including `src/instdiff/` and evaluation
+components. Retaining attribution does not, by itself,
+establish permission to redistribute upstream material.
 
-Those component licenses should remain attached to the corresponding code.
+## Explicit Third-Party Licenses
+
+The following existing licenses remain in force:
+
+| Component | License file |
+|---|---|
+| Math evaluator | `eval/math_evaluation/LICENSE` |
+| Bundled latex2sympy | `eval/math_evaluation/latex2sympy/LICENSE.txt` |
+
+Both contain MIT license terms and their own copyright
+notices. They are not replaced by the root `LICENSE`.
+
+Other evaluation materials must not be assumed to be covered
+by these two files without verifying their provenance.
+
+## Data, Models, and Research Artifacts
+
+The root MIT license does not independently grant rights
+to redistribute or reuse:
+
+- third-party evaluation or training datasets;
+- source material inside selected JSONL examples;
+- model weights, checkpoints, or tokenizer assets;
+- third-party content contained in figures or results.
+
+Those materials remain subject to their respective terms.
+Research results and numerical measurements are documented
+for reproducibility, without claiming that all underlying
+content is owned by the ShallowFrontier copyright holder.
 
 ## Attribution
 
-`NOTICE` records that ShallowFrontier builds on InstructDiff and distinguishes
-the ShallowFrontier-specific research modifications from the upstream
-framework and evaluator components.
+[`NOTICE`](../NOTICE) records the original InstructDiff
+framework and the ShallowFrontier-specific research work.
+Academic citation and software licensing serve different
+purposes; both should be preserved where applicable.
 
-For publication and release, attribution should continue to distinguish:
+## Outstanding Release Checks
 
-- InstructDiff's original iterative/differential-entropy data-selection work;
-- third-party evaluation code and datasets;
-- ShallowFrontier-specific prefix scoring, asymmetric extrapolation,
-  cost/energy measurement, and K128/K256 experiments.
+Before declaring the complete repository freely reusable
+under a single license:
 
-## Required follow-up before declaring a repository-wide license
+1. Verify the upstream InstructDiff license text or obtain
+   appropriate authorization for the inherited code.
+2. Confirm any institutional or research-project IP
+   obligations that apply to the original contributions.
+3. Audit provenance and redistribution permissions for
+   remaining evaluation code and included datasets.
+4. Distinguish new standalone code from adapted upstream
+   material at file or component level where practical.
 
-1. Recover or verify the exact license governing the InstructDiff source files
-   that were copied or adapted.
-2. Inventory copied/adapted files and identify their upstream commit.
-3. Preserve every third-party component's original notice and license.
-4. Review dataset redistribution terms separately from source-code licensing.
-5. Only then choose a license for code written solely for ShallowFrontier and
-   decide whether a root license can accurately describe the mixed repository.
+The root license does not waive these requirements.
 
-Until that work is complete, the absence of a root license is preferable to
-an unsupported relicensing claim.
+This document describes the repository licensing scope
+and is not legal advice.
