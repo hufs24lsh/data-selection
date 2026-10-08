@@ -18,12 +18,14 @@ def make_rows(
     *,
     k=128,
     nll=None,
+    nll_half=None,
     dh_half=None,
     dh_k=None,
     lengths=None,
 ):
     h = k // 2
     nll = list(range(n)) if nll is None else list(nll)
+    nll_half = list(nll) if nll_half is None else list(nll_half)
     dh_half = [0.0] * n if dh_half is None else list(dh_half)
     dh_k = [0.0] * n if dh_k is None else list(dh_k)
     lengths = [k] * n if lengths is None else list(lengths)
@@ -35,6 +37,7 @@ def make_rows(
             {
                 "index": i,
                 "response_tokens_full": lengths[i],
+                f"nll_{h}": float(nll_half[i]),
                 f"nll_{k}": float(nll[i]),
                 f"entropy_{h}": float(dh_half[i]),
                 f"entropy_{k}": float(dh_k[i]),
@@ -44,6 +47,7 @@ def make_rows(
             {
                 "index": i,
                 "response_tokens_full": lengths[i],
+                f"nll_{h}": 0.0,
                 f"nll_{k}": 0.0,
                 f"entropy_{h}": 0.0,
                 f"entropy_{k}": 0.0,
@@ -116,6 +120,45 @@ def test_q10_q90_trimming_then_delta_h_ranking():
     # NLL ranks 0 and 9 are removed. Among 1..8, the lowest ΔH values
     # belong to indices 8, 7, 6.
     assert selected == [8, 7, 6]
+
+
+def test_correction_ablation_modes_change_only_requested_statistic():
+    # Long responses make the extrapolation active. Raw NLL would rank 0<1<2<3,
+    # corrected NLL flips the first two. Raw ΔH prefers larger indices, while
+    # corrected ΔH flips the first two among the surviving candidates.
+    base, calib = make_rows(
+        4,
+        k=128,
+        nll=[0.0, 1.0, 2.0, 3.0],
+        nll_half=[-10.0, 1.0, 2.0, 3.0],
+        dh_half=[0.0, 10.0, 2.0, 3.0],
+        dh_k=[3.0, 2.0, 1.0, 0.0],
+        lengths=[256, 256, 256, 256],
+    )
+
+    raw = core.select_indices_variant(
+        base, calib, k=128, expected_n=4, trim=1, target=2,
+        correct_nll=False, correct_h=False,
+    )
+    nll_only = core.select_indices_variant(
+        base, calib, k=128, expected_n=4, trim=1, target=2,
+        correct_nll=True, correct_h=False,
+    )
+    h_only = core.select_indices_variant(
+        base, calib, k=128, expected_n=4, trim=1, target=2,
+        correct_nll=False, correct_h=True,
+    )
+    both = core.select_indices_variant(
+        base, calib, k=128, expected_n=4, trim=1, target=2,
+        correct_nll=True, correct_h=True,
+    )
+
+    assert raw != nll_only
+    assert raw != h_only
+    assert h_only == core.select_indices(
+        base, calib, k=128, expected_n=4, trim=1, target=2
+    )
+    assert both != raw
 
 
 def test_ties_use_index_as_explicit_deterministic_tiebreaker():
