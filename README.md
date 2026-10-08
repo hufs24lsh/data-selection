@@ -112,6 +112,12 @@ The correction is applied only to ΔH.
 
 ΔH-only correction produced the highest selected-set overlap with the full-response T1 reference at both evaluated depths.
 
+**Evidence boundary:** this table is an overlap ablation, not a downstream
+performance ablation. No published run currently establishes that higher T1
+selection overlap from the correction causes higher Math/Medical/Macro
+utility. The matched downstream ablation required to test that claim is
+specified in `docs/research_validation_plan.md`.
+
 ---
 
 ## Repository Structure
@@ -177,6 +183,18 @@ The evaluation requirements install the bundled `latex2sympy2`
 implementation used by the Math evaluator. For exact reproduction,
 use Python 3.10 and CUDA-compatible PyTorch/vLLM builds matching the
 versions documented in `docs/reproducibility.md`.
+
+After activating the corresponding environment, the recorded environment can
+be checked explicitly:
+
+```bash
+python scripts/repro/check_environment.py --profile train --strict
+python scripts/repro/check_environment.py --profile eval --strict
+```
+
+The public requirements files are install specifications, not a complete
+historical transitive dependency lock. Exact environment reconstruction is
+therefore limited by the package information preserved from the original run.
 
 Release-integrity checks can be run without a GPU:
 
@@ -249,7 +267,9 @@ ada4cb631860df9039fb4aced93ef56fba2ab92ceb723f993fb70d2ede2a0326
 ```
 
 See `data/README.md` and `docs/reproducibility.md` for the frozen hashes,
-training recipe, and experiment scope.
+training recipe, experiment scope, and the three explicit reproducibility
+levels. In particular, reconstruction from raw upstream datasets is **not yet
+fully reproducible** from the public artifacts.
 
 ### 3. Prefix Scoring
 
@@ -377,6 +397,20 @@ Primary reporting uses **gross GPU energy**.
 
 Idle-adjusted values are retained as secondary measurements.
 
+The historical raw 1 Hz NVML CSV files and stage-marker files used for the
+reported runs are not currently public, so the aggregate E2E values cannot yet
+be independently reaggregated sample-by-sample. A raw-log reaggregation
+utility is provided for recovered or future logs:
+
+```text
+scripts/energy/aggregate_energy.py
+```
+
+The historical energy metadata also references a different protocol hash from
+the public rerun protocol. The frozen historical hashes are preserved rather
+than rewritten. See `docs/energy_provenance.md` for the audit trail and
+remaining limitation.
+
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">
 </p>
@@ -385,9 +419,18 @@ Idle-adjusted values are retained as secondary measurements.
 
 ## Sustainability Metrics
 
+QCCR and SUE are **study-specific descriptive reporting metrics**. They are
+not statistical tests, field-wide standards, or by themselves evidence of
+generalization.
+
 ### QCCR
 
-**Quality-Constrained Carbon Reduction (QCCR)** measures the reduction in operational carbon while satisfying the frozen utility threshold.
+**Quality-Constrained Carbon Reduction (QCCR)** reports the reduction in
+operational carbon conditional on satisfying the frozen utility threshold.
+With one fixed grid-carbon factor shared across methods, the percentage carbon
+reduction is numerically identical to the percentage gross GPU-energy
+reduction. Absolute CO2eq values are derived from energy rather than directly
+measured.
 
 For this study:
 
@@ -409,7 +452,9 @@ Results:
   <img src="figs/sue.png" width="64%">
 </p>
 
-Within the evaluated configurations, K128 achieved the highest SUE.
+Within the single-seed evaluated configurations, K128 achieved the highest
+reported SUE. This should not be interpreted as a statistically established
+ranking across training seeds.
 
 ---
 
@@ -440,6 +485,14 @@ The scale-out plot is a scenario based on the measured per-run GPU-energy differ
 - Full20K compute cost reported in the accompanying study is estimated from a partial matched run and is not presented as a completed measured run.
 - Reported energy and carbon values refer to **GPU-attributed operational energy**.
 - CPU, RAM, storage, networking, cooling, and datacenter PUE are outside the measurement boundary.
+- The current downstream comparison is single-seed; no confidence interval or
+  non-inferiority conclusion is available.
+- The exact raw-data-to-20K pool construction is not yet independently
+  reproducible from public artifacts.
+- Energy raw logs for the reported runs are not currently public; see
+  `docs/energy_provenance.md`.
+- Licensing status is documented in `docs/licensing.md`; no unsupported
+  repository-wide relicensing is asserted.
 
 ---
 
