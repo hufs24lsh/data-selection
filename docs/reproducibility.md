@@ -169,3 +169,85 @@ Files under `results/manifests/` are preserved as experiment provenance.
 They intentionally retain historical internal paths and experiment names
 because those strings are part of the frozen hash records from the original
 runs. They are not runtime paths required by the public release.
+
+
+## Reproducibility Levels
+
+The public release supports different levels of reproduction. These levels are
+intentionally separated so that artifact verification is not mistaken for a
+full reconstruction from raw sources.
+
+### Level 1 — Final fine-tuning from published selected sets
+
+**Status: supported from public artifacts, subject to hardware/software
+availability.**
+
+Required public inputs:
+
+- `results/selections/k256_selected.jsonl`;
+- `results/selections/k128_selected.jsonl`;
+- public training scripts and the Qwen2.5-7B base model.
+
+The selected-set SHA-256 values are frozen and checked by CI. Exact numerical
+training reproduction still depends on matching the recorded software stack,
+GPU topology and model checkpoint.
+
+### Level 2 — 20K pool to scoring and selection
+
+**Status: not independently runnable from the repository alone.**
+
+The exact candidate pool is identified by path, row count and SHA-256, but the
+20K JSONL itself is not redistributed. Full selection-stage reproduction also
+requires the calibration checkpoint/warmup artifact. The final scoring scripts
+and selector are public.
+
+A researcher who independently possesses the exact 20K pool and matching
+calibration model can rerun the public scoring/selection code and compare the
+resulting selected-set hashes.
+
+### Level 3 — Raw source data to the complete experiment
+
+**Status: not reproducible with the current public artifacts.**
+
+The public release does not currently contain a complete, verified record of:
+
+- exact upstream source-dataset snapshot/version identifiers for both domains;
+- the deterministic 10K+10K pool-construction script;
+- duplicate-removal/filtering rules, if any;
+- the exact JSONL serialization procedure used to obtain the frozen pool hash;
+- a public copy or reconstruction script for the frozen calibration subset.
+
+Upstream InstructDiff configurations contain references to domain-specific
+training files, but those references alone do not prove that a particular
+snapshot and transformation produced the ShallowFrontier 20K pool. They must
+not be presented as a complete reconstruction recipe without verifying the
+original experiment workspace.
+
+## Statistical Evidence Boundary
+
+The published downstream comparison is a frozen seed-42 result. No multi-seed
+confidence interval is currently available.
+
+Therefore:
+
+- `Macro >= 46.60` is an operational acceptance rule, not a statistical
+  non-inferiority result;
+- the K128 result should not be described as robustly preserving utility,
+  because it clears the threshold by only about 0.0057 Macro points in the
+  published run;
+- failure to observe a large single-seed degradation is not evidence of
+  equivalence.
+
+The required multi-seed and correction-ablation experiments are specified in
+`docs/research_validation_plan.md`.
+
+## Energy Reproducibility Boundary
+
+Raw 1 Hz NVML logs and historical stage-marker files for the reported runs are
+not currently published. Aggregate energy values are frozen, but raw
+sample-by-sample reaggregation is therefore not independently possible from
+the public repository alone.
+
+See `docs/energy_provenance.md` for the protocol-hash discrepancy,
+measurement scope, gross/idle-adjusted formulas, and required future raw
+artifacts.
