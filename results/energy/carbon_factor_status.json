@@ -1,0 +1,11 @@
+{
+  "kgCO2eq_per_kWh": 0.4541,
+  "status": "UNVERIFIED_PUBLIC_PROVENANCE",
+  "source": null,
+  "reference_year": null,
+  "publication_date": null,
+  "geography": "Republic of Korea",
+  "interpretation": "Study conversion factor preserved for scenario reproduction; source metadata is not preserved in the public repository and must be independently verified before a publication-grade emissions claim.",
+  "formula": "operational_CO2eq_kg = measured_GPU_kWh * kgCO2eq_per_kWh",
+  "measurement_scope_note": "GPU-attributed operational energy only; carbon is derived, not directly measured."
+}
