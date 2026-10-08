@@ -105,19 +105,24 @@ enforced at selection time.
 - positive finite integer-valued response length;
 - required score fields;
 - numeric finite score checks, including NaN/Inf rejection;
-- explicit `(score, index)` tie-breaking.
+- deterministic ΔNLL ranking and stable ΔH ranking that preserves the previous ΔNLL order when ΔH values tie.
 
-**Frozen-behavior note:** explicit index tie-breaking is equivalent to the
-original Python stable sort because the original input index list was
-ascending. The frozen selection output files themselves were not rewritten.
+**Frozen-behavior note:** the original selector uses Python stable sorting
+for both ΔNLL and ΔH. Explicit index tie-breaking at the second stage
+changed the order of ΔH ties, so the audit selector was corrected to
+preserve preceding ΔNLL order. Frozen output files were not rewritten.
 
 **Validation:** synthetic CPU tests cover malformed alignment/schema cases.
-However, the exact frozen 20K score files are not public, so this audit has not
-rerun the refactored selector against those historical score files to
-reproduce the published selected-set SHA from first principles.
+The refactored selector was also rerun against the original K256 and
+independent true-K128 historical scoring files on the experiment server.
+Both generated selections match their published frozen files byte-for-byte:
+`61411aeffad57e5662b861a887de114b49138525f12e41ab2a39e7d555028a22`
+(K256) and
+`c382b4bc65388d3ff3140e4fb3d42eafd6149d6b275974872ee30afdfec245f2`
+(true-K128).
 
-**Remaining risk:** frozen-output preservation is verified at the published
-artifact/hash level, not by a historical-score replay.
+**Remaining risk:** historical score files are not public; scorer GPU forward
+passes and downstream fine-tuning were not rerun during this audit.
 
 ### Issue 3 — Core algorithm semantic tests
 
@@ -134,14 +139,15 @@ artifact/hash level, not by a historical-score replay.
 - corrected ΔH ranking;
 - exact target count;
 - equal-score boundaries;
-- explicit deterministic tie-breaking;
+- deterministic ΔNLL ordering and stable ΔH tie behavior;
 - malformed score schemas;
 - permuted rows;
 - response-length mismatch;
 - correction-ablation modes.
 
-**Validation:** audit-branch CI completed with 28 tests passing on the first
-full semantic-test run.
+**Validation:** Python 3.10 CPU regression tests cover stable ΔH ties,
+linear interpolation, exact sample boundaries, and invalid boundary-gap
+rejection. Eight pre-existing Math evaluator warnings remain.
 
 **Remaining risk:** the test suite verifies prefix aggregation and selection
 semantics without loading a language model. It does not independently
@@ -254,10 +260,12 @@ unchanged.
   `b52f3a4a2dc83254ff63f0c16f6553934c7b3bf94949e2fa7bdd2a9571d9e350`;
 - the public protocol already had its current content in the first clean
   public-release commit;
-- historical raw 1 Hz NVML CSVs and stage-marker CSVs are not public.
+- historical raw 1 Hz NVML CSV is not public; the published stage-marker
+  CSV is byte-identical to the recovered original.
 
 **Root cause:** public release preparation preserved aggregate historical
-metadata but not the exact historical protocol text/raw measurement stream.
+metadata and stage markers, but omitted the historical protocol text and
+raw NVML counter stream. Both were subsequently found on the original server.
 
 **Implemented:**
 
@@ -266,18 +274,24 @@ metadata but not the exact historical protocol text/raw measurement stream.
 - `scripts/energy/aggregate_energy.py` can recompute per-stage GPU0/GPU1
   counter deltas, gross kWh, boundary gaps and optional idle-adjusted kWh from
   recovered/future logs;
-- synthetic unit tests validate the arithmetic and reject counter regression
-  or badly aligned markers.
+- synthetic unit tests validate the arithmetic, UTC Z timestamps, nearest
+  and linear boundary methods, and rejection of bad counters or markers;
+- on-server reaggregation of seven complete historical stages reproduces
+  all frozen T1/K256/true-K128 gross and idle-adjusted E2E energy values
+  within `1e-9 kWh` using linear boundary interpolation and 46.953 W idle power;
+- recovered historical protocol SHA `d0fe...` is verified; direct comparison
+  shows the public `b52f...` copy generalizes only the Python executable path.
 
 **Measurement boundary:** GPU-only operational board energy. CPU, RAM,
 storage, networking, cooling and datacenter PUE are excluded.
 
 **Remaining blockers:**
 
-- historical raw logs are needed for independent sample-level reaggregation;
+- publish or otherwise provide integrity-verified recovered measurement
+  evidence before claiming public sample-level reproduction;
 - repeated energy runs are needed to estimate run-to-run uncertainty;
-- the exact historical `d0fe...` protocol text must be recovered to resolve
-  the provenance mismatch.
+- the exact original historical aggregation source code has not been
+  recovered, although its published numeric outputs were reconstructed.
 
 ### Issue 9 — Environment and dependency freezing
 
@@ -427,7 +441,7 @@ Before this draft PR should be considered release-ready:
 
 1. current branch CI must be green;
 2. changed figures must be regenerated and visually checked;
-3. if available, replay the refactored selector against historical score files
-   and verify the same frozen selected-set SHA;
+3. retain the now-verified K256 and true-K128 on-server selector replay
+   evidence and clearly distinguish it from public-only reproducibility;
 4. do not convert the open research-evidence gaps into claims without the
    required GPU experiments.

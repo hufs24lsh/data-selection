@@ -17,7 +17,9 @@ from pathlib import Path
 
 
 def parse_time(value: str) -> datetime:
-    return datetime.fromisoformat(value)
+    # Python 3.10 requires an explicit UTC offset instead of Z.
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    return datetime.fromisoformat(normalized)
 
 
 def load_energy_rows(path: Path) -> list[dict]:
@@ -47,9 +49,7 @@ def load_energy_rows(path: Path) -> list[dict]:
             e0 = int(row["gpu0_energy_mJ"])
             e1 = int(row["gpu1_energy_mJ"])
         except Exception as exc:
-            raise ValueError(
-                f"invalid energy row at CSV line {lineno}"
-            ) from exc
+            raise ValueError(f"invalid energy row at CSV line {lineno}") from exc
 
         if previous_time is not None and ts <= previous_time:
             raise ValueError("energy timestamps must be strictly increasing")
@@ -98,9 +98,7 @@ def load_markers(path: Path) -> dict[str, dict[str, datetime]]:
 
             stage_markers = markers.setdefault(stage, {})
             if status in stage_markers:
-                raise ValueError(
-                    f"duplicate {status} marker for stage {stage}"
-                )
+                raise ValueError(f"duplicate {status} marker for stage {stage}")
             stage_markers[status] = ts
 
     complete = {}
@@ -165,9 +163,7 @@ def summarize_stage(
     if e0 < 0 or e1 < 0:
         raise ValueError(f"{stage}: cumulative energy delta is negative")
 
-    sample_duration = (
-        last["timestamp"] - first["timestamp"]
-    ).total_seconds()
+    sample_duration = (last["timestamp"] - first["timestamp"]).total_seconds()
     marker_duration = (end - start).total_seconds()
     gross_mj = e0 + e1
     gross_kwh = gross_mj / 3_600_000_000.0
@@ -199,18 +195,138 @@ def summarize_stage(
     return result
 
 
+def interpolated_boundary(
+    rows: list[dict],
+    target: datetime,
+    *,
+    max_boundary_gap_s: float,
+) -> dict:
+    """Interpolate cumulative counters between observed 1 Hz samples."""
+    times = [row["timestamp"] for row in rows]
+    pos = bisect_left(times, target)
+
+    # An observed counter at the exact marker time needs no interpolation.
+    # This also handles the first and last samples without extrapolation.
+    if pos < len(rows) and times[pos] == target:
+        sample = rows[pos]
+        return {
+            "before_sample_utc": sample["timestamp_utc"],
+            "after_sample_utc": sample["timestamp_utc"],
+            "max_bracketing_gap_seconds": 0.0,
+            "gpu0_energy_mJ": sample["gpu0_energy_mJ"],
+            "gpu1_energy_mJ": sample["gpu1_energy_mJ"],
+        }
+
+    if pos <= 0 or pos >= len(rows):
+        raise ValueError("interpolation boundary outside observed samples")
+
+    before = rows[pos - 1]
+    after = rows[pos]
+
+    left_gap = (target - before["timestamp"]).total_seconds()
+    right_gap = (after["timestamp"] - target).total_seconds()
+    interval = (after["timestamp"] - before["timestamp"]).total_seconds()
+
+    if interval <= 0 or left_gap < 0 or right_gap < 0:
+        raise ValueError("invalid interpolation interval")
+
+    if max(left_gap, right_gap) > max_boundary_gap_s:
+        raise ValueError(
+            f"interpolation boundary gap exceeds {max_boundary_gap_s:.3f}s"
+        )
+
+    fraction = left_gap / interval
+
+    result = {
+        "before_sample_utc": before["timestamp_utc"],
+        "after_sample_utc": after["timestamp_utc"],
+        "max_bracketing_gap_seconds": max(left_gap, right_gap),
+    }
+
+    for field in ("gpu0_energy_mJ", "gpu1_energy_mJ"):
+        result[field] = before[field] + fraction * (after[field] - before[field])
+
+    return result
+
+
+def summarize_stage_linear(
+    rows: list[dict],
+    *,
+    stage: str,
+    start: datetime,
+    end: datetime,
+    max_boundary_gap_s: float,
+    idle_power_w: float | None,
+) -> dict:
+    """Summarize a stage using interpolated boundary counter values."""
+    first = interpolated_boundary(rows, start, max_boundary_gap_s=max_boundary_gap_s)
+    last = interpolated_boundary(rows, end, max_boundary_gap_s=max_boundary_gap_s)
+
+    e0 = last["gpu0_energy_mJ"] - first["gpu0_energy_mJ"]
+    e1 = last["gpu1_energy_mJ"] - first["gpu1_energy_mJ"]
+
+    if e0 < 0 or e1 < 0:
+        raise ValueError(f"{stage}: interpolated counter decreased")
+
+    marker_duration = (end - start).total_seconds()
+    gross_mj = e0 + e1
+    gross_kwh = gross_mj / 3_600_000_000.0
+
+    result = {
+        "stage": stage,
+        "boundary_policy": "linear",
+        "marker_start_utc": start.isoformat(),
+        "marker_end_utc": end.isoformat(),
+        "marker_duration_seconds": marker_duration,
+        "counter_start_bracket_utc": [
+            first["before_sample_utc"],
+            first["after_sample_utc"],
+        ],
+        "counter_end_bracket_utc": [
+            last["before_sample_utc"],
+            last["after_sample_utc"],
+        ],
+        "start_boundary_max_bracketing_gap_seconds": first[
+            "max_bracketing_gap_seconds"
+        ],
+        "end_boundary_max_bracketing_gap_seconds": last["max_bracketing_gap_seconds"],
+        "gpu0_energy_mJ": e0,
+        "gpu1_energy_mJ": e1,
+        "gross_energy_mJ": gross_mj,
+        "gross_gpu_kWh": gross_kwh,
+    }
+
+    if idle_power_w is not None:
+        if not math.isfinite(idle_power_w) or idle_power_w < 0:
+            raise ValueError("idle power must be finite and non-negative")
+        idle_kwh = idle_power_w * marker_duration / 3_600_000.0
+        result["idle_power_W"] = idle_power_w
+        result["idle_energy_kWh"] = idle_kwh
+        result["idle_adjusted_gpu_kWh"] = gross_kwh - idle_kwh
+
+    return result
+
+
 def aggregate(
     energy_csv: Path,
     markers_csv: Path,
     *,
     max_boundary_gap_s: float = 1.5,
     idle_power_w: float | None = None,
+    boundary_policy: str = "nearest",
 ) -> dict:
+    if boundary_policy not in {"nearest", "linear"}:
+        raise ValueError("unsupported boundary policy")
+    if not math.isfinite(max_boundary_gap_s) or max_boundary_gap_s < 0:
+        raise ValueError("maximum boundary gap must be finite and non-negative")
     rows = load_energy_rows(energy_csv)
     markers = load_markers(markers_csv)
 
+    stage_summarizer = (
+        summarize_stage if boundary_policy == "nearest" else summarize_stage_linear
+    )
     stages = [
-        summarize_stage(
+        stage_summarizer(
             rows,
             stage=stage,
             start=values["START"],
@@ -224,6 +340,7 @@ def aggregate(
     return {
         "scope": "GPU_ONLY",
         "counter_source": "NVML cumulative energy mJ",
+        "boundary_policy": boundary_policy,
         "max_boundary_gap_seconds": max_boundary_gap_s,
         "stages": stages,
     }
@@ -236,6 +353,11 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--idle-power-w", type=float)
     parser.add_argument("--max-boundary-gap-s", type=float, default=1.5)
+    parser.add_argument(
+        "--boundary-policy",
+        choices=("nearest", "linear"),
+        default="nearest",
+    )
     args = parser.parse_args()
 
     result = aggregate(
@@ -243,6 +365,7 @@ def main() -> None:
         args.markers_csv,
         max_boundary_gap_s=args.max_boundary_gap_s,
         idle_power_w=args.idle_power_w,
+        boundary_policy=args.boundary_policy,
     )
     text = json.dumps(result, indent=2, sort_keys=True) + "\n"
 

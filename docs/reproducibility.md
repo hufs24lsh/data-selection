@@ -243,11 +243,18 @@ The required multi-seed and correction-ablation experiments are specified in
 
 ## Energy Reproducibility Boundary
 
-Raw 1 Hz NVML logs and historical stage-marker files for the reported runs are
-not currently published. Aggregate energy values are frozen, but raw
-sample-by-sample reaggregation is therefore not independently possible from
-the public repository alone.
+The historical stage markers are published in
+`results/energy/stage_markers.csv` and match the recovered original. The
+historical 1 Hz NVML counter log was also recovered on the experiment server
+but is not redistributed in the public repository.
 
-See `docs/energy_provenance.md` for the protocol-hash discrepancy,
-measurement scope, gross/idle-adjusted formulas, and required future raw
-artifacts.
+Reaggregation of seven complete historical stages using linear interpolation
+at marker boundaries and 46.953 W idle adjustment reproduces the frozen
+T1/K256/true-K128 gross and idle-adjusted E2E GPU energy values within
+`1e-9 kWh`.
+
+This is an on-server numerical reconstruction, not public-only sample-level
+reproducibility or proof of historical aggregation source-code identity.
+The original measurement protocol was recovered and SHA-verified; its public
+counterpart differs in the configured Python executable path. See
+`docs/energy_provenance.md` for the evidence and remaining limitations.

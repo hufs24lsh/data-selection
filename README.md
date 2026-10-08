@@ -397,19 +397,26 @@ Primary reporting uses **gross GPU energy**.
 
 Idle-adjusted values are retained as secondary measurements.
 
-The historical raw 1 Hz NVML CSV files and stage-marker files used for the
-reported runs are not currently public, so the aggregate E2E values cannot yet
-be independently reaggregated sample-by-sample. A raw-log reaggregation
-utility is provided for recovered or future logs:
+The historical stage markers are published in
+`results/energy/stage_markers.csv` and match the original experiment records
+byte-for-byte. The corresponding 1 Hz NVML counter log was recovered on the
+experiment server but is not included in this public repository.
+
+The audited energy aggregation implementation is:
 
 ```text
 scripts/energy/aggregate_energy.py
 ```
 
-The historical energy metadata also references a different protocol hash from
-the public rerun protocol. The frozen historical hashes are preserved rather
-than rewritten. See `docs/energy_provenance.md` for the audit trail and
-remaining limitation.
+With the recovered counters, linear interpolation at stage boundaries and
+46.953 W idle adjustment reproduce the frozen T1, K256, and true-K128 gross
+and idle-adjusted E2E GPU energy values within `1e-9 kWh`.
+
+This establishes numerical reconstruction on the historical server, not
+public-only raw-log reproducibility or identity with the original aggregation
+source code. The historical measurement protocol was recovered and verified;
+its public counterpart uses a generalized Python executable path. See
+`docs/energy_provenance.md` for checksums and measurement limitations.
 
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">

@@ -137,20 +137,44 @@ def test_correction_ablation_modes_change_only_requested_statistic():
     )
 
     raw = core.select_indices_variant(
-        base, calib, k=128, expected_n=4, trim=1, target=2,
-        correct_nll=False, correct_h=False,
+        base,
+        calib,
+        k=128,
+        expected_n=4,
+        trim=1,
+        target=2,
+        correct_nll=False,
+        correct_h=False,
     )
     nll_only = core.select_indices_variant(
-        base, calib, k=128, expected_n=4, trim=1, target=2,
-        correct_nll=True, correct_h=False,
+        base,
+        calib,
+        k=128,
+        expected_n=4,
+        trim=1,
+        target=2,
+        correct_nll=True,
+        correct_h=False,
     )
     h_only = core.select_indices_variant(
-        base, calib, k=128, expected_n=4, trim=1, target=2,
-        correct_nll=False, correct_h=True,
+        base,
+        calib,
+        k=128,
+        expected_n=4,
+        trim=1,
+        target=2,
+        correct_nll=False,
+        correct_h=True,
     )
     both = core.select_indices_variant(
-        base, calib, k=128, expected_n=4, trim=1, target=2,
-        correct_nll=True, correct_h=True,
+        base,
+        calib,
+        k=128,
+        expected_n=4,
+        trim=1,
+        target=2,
+        correct_nll=True,
+        correct_h=True,
     )
 
     assert raw != nll_only
@@ -161,22 +185,41 @@ def test_correction_ablation_modes_change_only_requested_statistic():
     assert both != raw
 
 
-def test_ties_use_index_as_explicit_deterministic_tiebreaker():
+def test_equal_nll_and_delta_h_preserve_input_index_order():
     base, calib = make_rows(
         8,
         nll=[0.0] * 8,
         dh_k=[0.0] * 8,
     )
 
-    first = core.select_indices(
-        base, calib, k=128, expected_n=8, trim=1, target=4
-    )
-    second = core.select_indices(
-        base, calib, k=128, expected_n=8, trim=1, target=4
-    )
+    first = core.select_indices(base, calib, k=128, expected_n=8, trim=1, target=4)
+    second = core.select_indices(base, calib, k=128, expected_n=8, trim=1, target=4)
 
     assert first == [1, 2, 3, 4]
     assert second == first
+
+
+def test_equal_delta_h_preserves_prior_nll_ranking():
+    # NLL ranking after trimming: 7, 6, 5, 4, 3, 2.
+    # Every remaining delta-H is equal. Stable sorting must
+    # preserve NLL order, not reorder by original index.
+    base, calib = make_rows(
+        8,
+        k=128,
+        nll=[0.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
+        dh_k=[0.0] * 8,
+    )
+
+    selected = core.select_indices(
+        base,
+        calib,
+        k=128,
+        expected_n=8,
+        trim=1,
+        target=4,
+    )
+
+    assert selected == [7, 6, 5, 4]
 
 
 def test_exact_2000_selected_after_decile_trimming():
@@ -206,15 +249,11 @@ def test_exact_2000_selected_after_decile_trimming():
     "mutator, message",
     [
         (
-            lambda b, c: b.__setitem__(
-                1, {**b[1], "index": 0}
-            ),
+            lambda b, c: b.__setitem__(1, {**b[1], "index": 0}),
             "duplicate index",
         ),
         (
-            lambda b, c: b.__setitem__(
-                1, {**b[1], "index": 4}
-            ),
+            lambda b, c: b.__setitem__(1, {**b[1], "index": 4}),
             "outside",
         ),
         (
@@ -230,15 +269,11 @@ def test_exact_2000_selected_after_decile_trimming():
             "missing score field",
         ),
         (
-            lambda b, c: b.__setitem__(
-                0, {**b[0], "nll_128": float("nan")}
-            ),
+            lambda b, c: b.__setitem__(0, {**b[0], "nll_128": float("nan")}),
             "non-finite",
         ),
         (
-            lambda b, c: b.__setitem__(
-                0, {**b[0], "entropy_64": float("inf")}
-            ),
+            lambda b, c: b.__setitem__(0, {**b[0], "entropy_64": float("inf")}),
             "non-finite",
         ),
     ],

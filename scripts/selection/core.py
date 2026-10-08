@@ -35,9 +35,7 @@ def validate_score_rows(
     required_scores = (f"nll_{k}", f"entropy_{h}", f"entropy_{k}")
 
     if len(rows) != expected_n:
-        raise ValueError(
-            f"{source}: expected {expected_n} rows, got {len(rows)}"
-        )
+        raise ValueError(f"{source}: expected {expected_n} rows, got {len(rows)}")
 
     seen: set[int] = set()
     for position, row in enumerate(rows):
@@ -45,8 +43,7 @@ def validate_score_rows(
 
         if not 0 <= idx < expected_n:
             raise ValueError(
-                f"{source} row {position}: index {idx} outside "
-                f"[0, {expected_n})"
+                f"{source} row {position}: index {idx} outside [0, {expected_n})"
             )
         if idx in seen:
             raise ValueError(f"{source}: duplicate index {idx}")
@@ -56,19 +53,13 @@ def validate_score_rows(
         # position==index protects the downstream pool[i] lookup from a
         # same-length but permuted scorer file.
         if idx != position:
-            raise ValueError(
-                f"{source} row {position}: index {idx} is out of order"
-            )
+            raise ValueError(f"{source} row {position}: index {idx} is out of order")
 
         if "response_tokens_full" not in row:
-            raise ValueError(
-                f"{source} row {position}: missing response_tokens_full"
-            )
+            raise ValueError(f"{source} row {position}: missing response_tokens_full")
         length = row["response_tokens_full"]
         if isinstance(length, bool):
-            raise ValueError(
-                f"{source} row {position}: invalid response_tokens_full"
-            )
+            raise ValueError(f"{source} row {position}: invalid response_tokens_full")
         try:
             length_float = float(length)
         except (TypeError, ValueError) as exc:
@@ -160,11 +151,7 @@ def asymmetric_extrapolate(
 
     corrected = full.copy()
     long = lengths > k
-    corrected[long] = (
-        full[long]
-        + (1.0 - k / lengths[long])
-        * (full[long] - half[long])
-    )
+    corrected[long] = full[long] + (1.0 - k / lengths[long]) * (full[long] - half[long])
     return corrected
 
 
@@ -203,9 +190,7 @@ def select_indices_variant(
     if 2 * trim + target > expected_n:
         raise ValueError("not enough rows after trimming for target size")
 
-    validate_paired_scores(
-        base, calib, k=k, expected_n=expected_n
-    )
+    validate_paired_scores(base, calib, k=k, expected_n=expected_n)
 
     h = k // 2
     lengths = np.asarray(
@@ -213,10 +198,7 @@ def select_indices_variant(
         dtype=np.float64,
     )
     delta_nll_k = np.asarray(
-        [
-            float(b[f"nll_{k}"]) - float(c[f"nll_{k}"])
-            for b, c in zip(base, calib)
-        ],
+        [float(b[f"nll_{k}"]) - float(c[f"nll_{k}"]) for b, c in zip(base, calib)],
         dtype=np.float64,
     )
     delta_h_half = np.asarray(
@@ -243,23 +225,20 @@ def select_indices_variant(
             ],
             dtype=np.float64,
         )
-        delta_nll = asymmetric_extrapolate(
-            delta_nll_half, delta_nll_k, lengths, k=k
-        )
+        delta_nll = asymmetric_extrapolate(delta_nll_half, delta_nll_k, lengths, k=k)
     else:
         delta_nll = delta_nll_k
 
     if correct_h:
-        delta_h = asymmetric_extrapolate(
-            delta_h_half, delta_h_k, lengths, k=k
-        )
+        delta_h = asymmetric_extrapolate(delta_h_half, delta_h_k, lengths, k=k)
     else:
         delta_h = delta_h_k
 
     indices = list(range(expected_n))
     by_nll = sorted(indices, key=lambda i: (delta_nll[i], i))
-    filtered = by_nll[trim:expected_n - trim]
-    return sorted(filtered, key=lambda i: (delta_h[i], i))[:target]
+    filtered = by_nll[trim : expected_n - trim]
+    # Stable sort preserves the prior delta-NLL order on delta-H ties.
+    return sorted(filtered, key=lambda i: delta_h[i])[:target]
 
 
 def select_indices(
