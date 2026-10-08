@@ -168,7 +168,19 @@ def asymmetric_extrapolate(
     return corrected
 
 
-def select_indices(
+def _finite_field(row: Mapping, field: str, *, source: str) -> float:
+    if field not in row:
+        raise ValueError(f"{source}: missing score field {field}")
+    try:
+        value = float(row[field])
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{source}: non-numeric {field}") from exc
+    if not math.isfinite(value):
+        raise ValueError(f"{source}: non-finite {field}={value!r}")
+    return value
+
+
+def select_indices_variant(
     base: Sequence[Mapping],
     calib: Sequence[Mapping],
     *,
@@ -176,8 +188,14 @@ def select_indices(
     expected_n: int,
     trim: int,
     target: int,
+    correct_nll: bool,
+    correct_h: bool,
 ) -> list[int]:
-    """Return deterministic selected pool indices using the frozen rule."""
+    """Select indices under one correction-ablation condition.
+
+    This is experimental support code. The frozen ShallowFrontier selector is
+    equivalent to correct_nll=False, correct_h=True.
+    """
     if k <= 0 or k % 2:
         raise ValueError("k must be a positive even integer")
     if trim < 0 or target <= 0:
@@ -194,7 +212,7 @@ def select_indices(
         [int(row["response_tokens_full"]) for row in base],
         dtype=np.float64,
     )
-    delta_nll = np.asarray(
+    delta_nll_k = np.asarray(
         [
             float(b[f"nll_{k}"]) - float(c[f"nll_{k}"])
             for b, c in zip(base, calib)
@@ -216,14 +234,51 @@ def select_indices(
         dtype=np.float64,
     )
 
-    delta_h = asymmetric_extrapolate(
-        delta_h_half, delta_h_k, lengths, k=k
-    )
+    if correct_nll:
+        delta_nll_half = np.asarray(
+            [
+                _finite_field(b, f"nll_{h}", source=f"base row {i}")
+                - _finite_field(c, f"nll_{h}", source=f"calib row {i}")
+                for i, (b, c) in enumerate(zip(base, calib))
+            ],
+            dtype=np.float64,
+        )
+        delta_nll = asymmetric_extrapolate(
+            delta_nll_half, delta_nll_k, lengths, k=k
+        )
+    else:
+        delta_nll = delta_nll_k
+
+    if correct_h:
+        delta_h = asymmetric_extrapolate(
+            delta_h_half, delta_h_k, lengths, k=k
+        )
+    else:
+        delta_h = delta_h_k
 
     indices = list(range(expected_n))
-
-    # Explicit index tie-breakers make the deterministic behavior independent
-    # of relying on Python's stable-sort implementation detail.
     by_nll = sorted(indices, key=lambda i: (delta_nll[i], i))
     filtered = by_nll[trim:expected_n - trim]
     return sorted(filtered, key=lambda i: (delta_h[i], i))[:target]
+
+
+def select_indices(
+    base: Sequence[Mapping],
+    calib: Sequence[Mapping],
+    *,
+    k: int,
+    expected_n: int,
+    trim: int,
+    target: int,
+) -> list[int]:
+    """Return deterministic indices using the frozen ShallowFrontier rule."""
+    return select_indices_variant(
+        base,
+        calib,
+        k=k,
+        expected_n=expected_n,
+        trim=trim,
+        target=target,
+        correct_nll=False,
+        correct_h=True,
+    )
