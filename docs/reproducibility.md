@@ -49,7 +49,7 @@ The selected sets support final fine-tuning with the public training scripts and
 
 Gross GPU energy uses NVML cumulative energy counters sampled at 1 Hz, summed over calibration, candidate scoring and final 2K training. Stage aggregation is implemented in `scripts/energy/aggregate_energy.py`. Downstream evaluation, non-GPU components and datacenter PUE are outside the reported boundary. The original raw NVML counter stream is not distributed, so historical per-sample energy reconstruction is not possible with public files alone.
 
-The Full20K energy comparison is an **estimate from a partial run**, not a completed energy measurement. Operational CO₂eq values apply the 2023 Korean electricity consumption-end factor recorded in `results/energy/carbon_factor_status.json`; they are modeled values, not direct emissions measurements. The unchanged measurement protocol records the measurement-time verification rules; original logger metadata is retained in `results/energy/archive/logger_meta.json`.
+The Full20K energy comparison is an **estimate from a partial run**, not a completed energy measurement. Operational CO₂eq values apply the 2023 Korean electricity consumption-end factor recorded in `results/energy/carbon_factor_status.json`; they are modeled values, not direct emissions measurements. The original measurement protocol and logger metadata are preserved under `results/energy/archive/`; the current verified carbon factor is recorded separately in `results/energy/carbon_factor_status.json`.
 
 ## Interpretation
 

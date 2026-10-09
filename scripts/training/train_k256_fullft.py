@@ -218,7 +218,7 @@ train_v2.TrainingArguments = AsymTrainingArguments
 
 
 record = {
-    "study": "Asymmetric Shallow InstructDiff v3",
+    "study": "ShallowFrontier",
     "stage": "primary K256 Full-FT",
     "seed": 42,
     "K": 256,
