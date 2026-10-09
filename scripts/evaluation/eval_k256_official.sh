@@ -236,5 +236,5 @@ printf '%s\n'   "$(realpath "$MODEL")"   > "$ROOT/official_eval_model_path.txt"
 touch   "$ROOT/.OFFICIAL_EVAL_COMPLETE"
 
 echo
-echo "===== EAR OFFICIAL EVAL COMPLETE ====="
+echo "===== SHALLOWFRONTIER OFFICIAL EVAL COMPLETE ====="
 cat "$ROOT/official_eval_summary.json"

@@ -153,12 +153,12 @@ def test_public_reproduction_paths_and_guards():
 
     assert (
         'PROTOCOL = ROOT / '
-        '"results/energy/energy_measurement_protocol.json"'
+        '"results/energy/archive/energy_measurement_protocol.json"'
         in energy_script
     )
 
     protocol = (
-        ROOT / "results" / "energy"
+        ROOT / "results" / "energy" / "archive"
         / "energy_measurement_protocol.json"
     )
 

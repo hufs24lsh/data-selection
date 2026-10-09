@@ -14,7 +14,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 CSV_PATH = OUT / "device_energy_1hz.csv"
 RESULT = OUT / "idle_baseline_300s.json"
 MARKERS = OUT / "idle_markers.csv"
-PROTOCOL = ROOT / "results/energy/energy_measurement_protocol.json"
+PROTOCOL = ROOT / "results/energy/archive/energy_measurement_protocol.json"
 
 EXPECTED_PROTOCOL = (
     "b52f3a4a2dc83254ff63f0c16f6553934c7b3bf94949e2fa7bdd2a9571d9e350"

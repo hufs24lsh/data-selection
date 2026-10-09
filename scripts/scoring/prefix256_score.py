@@ -272,7 +272,7 @@ def main():
 
     print()
     print("=" * 78)
-    print(f"S2 {args.role.upper()} COMPLETE")
+    print(f"PREFIX256 SCORING {args.role.upper()} COMPLETE")
     print("=" * 78)
     print(json.dumps(meta, indent=2))
     print("meta_sha256 =", sha256(meta_path))
