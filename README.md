@@ -143,7 +143,7 @@ SUE(m) = [(Macro(m) - Macro(Base)) / (Macro(T1) - Macro(Base))]
          / [C_m / C_T1]
 ```
 
-For the displayed SUE figure, **Macro(Base) = 38.625** and **Macro(T1) = 47.10** are the plotting references; **SUE(T1) = 1.00**. The exact Base and T1 evaluation scores are in [results/performance/](results/performance/). Both metrics are study-specific descriptive measures, not statistical tests.
+The figure uses the exact Base, T1, K256 and K128 Macro scores from [results/performance/](results/performance/) and measured E2E GPU energy from [results/cost/](results/cost/). **SUE(T1) = 1.00**. Both metrics are study-specific descriptive measures, not statistical tests.
 
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">
