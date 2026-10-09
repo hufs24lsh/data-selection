@@ -1,7 +1,7 @@
 ShallowFrontier
 =============
 
-Based on InstructDiff: Domain-Adaptive Data Selection via Differential
+Based on InstructDiff: Domain-Adaptive Data Selection via Contrastive
 Entropy for Efficient LLM Fine-Tuning
 https://github.com/zhuchichi56/Instruct-diff
 
