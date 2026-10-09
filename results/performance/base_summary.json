@@ -1,0 +1,20 @@
+{
+  "name": "qwen7b_base_phase0_seed42",
+  "model": "models/Qwen2.5-7B",
+  "math": {
+    "math_oai": 26.6625,
+    "minerva_math": 8.425,
+    "olympiadbench": 8.04375,
+    "aime24": 1.2374999999999998,
+    "amc23": 15.9375,
+    "avg": 12.061250000000001
+  },
+  "medical": {
+    "medqa": 62.293794186959936,
+    "mmlu_medical": 74.84483388097846,
+    "medmcqa": 58.45087257948841,
+    "avg": 65.19650021580894
+  },
+  "macro": 38.62887510790447,
+  "worst_domain": 12.061250000000001
+}

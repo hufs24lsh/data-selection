@@ -14,12 +14,16 @@ Qwen2.5-7B, Math/Medical, 20K candidates, 2K selected examples, seed 42.
 
 | Method | Math | Medical | Macro |
 |---|---:|---:|---:|
-| Base | 12.06 | 65.19 | 38.63 |
+| Base | 12.06 | 65.20 | 38.63 |
 | Full20K | 29.17 | 57.37 | 43.27 |
 | Random2K | 26.66 | 62.96 | 44.81 |
 | InstructDiff T1 | 28.62 | 65.59 | **47.10** |
+| InstructDiff T2 | 27.63 | 64.65 | 46.14 |
+| InstructDiff T3 | 29.23 | 62.42 | 45.83 |
 | ShallowFrontier K256 | 27.88 | 65.50 | **46.69** |
 | ShallowFrontier K128 | 28.02 | 65.19 | **46.61** |
+
+Full per-benchmark scores for all eight methods: [results/performance/](results/performance/).
 
 | Method | Scoring tokens (base + calibration) | Token reduction vs. T1 | Measured E2E GPU energy | Energy reduction vs. T1 |
 |---|---:|---:|---:|---:|
@@ -139,7 +143,7 @@ SUE(m) = [(Macro(m) - Macro(Base)) / (Macro(T1) - Macro(Base))]
          / [C_m / C_T1]
 ```
 
-Here **Macro(Base) = 38.625** (unrounded), **Macro(T1) = 47.10**, and **SUE(T1) = 1.00**. Both metrics are study-specific descriptive measures, not statistical tests.
+For the displayed SUE figure, **Macro(Base) = 38.625** and **Macro(T1) = 47.10** are the plotting references; **SUE(T1) = 1.00**. The exact Base and T1 evaluation scores are in [results/performance/](results/performance/). Both metrics are study-specific descriptive measures, not statistical tests.
 
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">

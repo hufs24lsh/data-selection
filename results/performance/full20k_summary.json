@@ -1,0 +1,20 @@
+{
+  "name": "qwen7b_mixed20k_unified_full20k_seed42",
+  "model": "runs/baselines/mixed_full20k_seed42_unified/model",
+  "math": {
+    "math_oai": 60.962500000000006,
+    "minerva_math": 19.575,
+    "olympiadbench": 23.4125,
+    "aime24": 5.625,
+    "amc23": 36.25,
+    "avg": 29.165000000000003
+  },
+  "medical": {
+    "medqa": 58.05184603299293,
+    "mmlu_medical": 62.869660460021905,
+    "medmcqa": 51.183361224001914,
+    "avg": 57.368289239005584
+  },
+  "macro": 43.26664461950279,
+  "worst_domain": 29.165000000000003
+}

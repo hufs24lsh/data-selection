@@ -1,0 +1,20 @@
+{
+  "name": "qwen7b_mixed20k_unified_instructdiff_t1_seed42",
+  "model": "runs/mixed_20k_qwen7b_seed42_unified/iter_1/selected_train_model",
+  "math": {
+    "math_oai": 60.675,
+    "minerva_math": 19.9,
+    "olympiadbench": 23.80625,
+    "aime24": 5.41875,
+    "amc23": 33.28125,
+    "avg": 28.61625
+  },
+  "medical": {
+    "medqa": 62.05813040062844,
+    "mmlu_medical": 76.41474990872581,
+    "medmcqa": 58.28352856801339,
+    "avg": 65.58546962578922
+  },
+  "macro": 47.10085981289461,
+  "worst_domain": 28.61625
+}
