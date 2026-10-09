@@ -168,7 +168,7 @@ def test_public_reproduction_paths_and_guards():
     )
 
     eval_requirements = (
-        ROOT / "requirements" / "eval.txt"
+        ROOT / "requirements" / "requirements_eval.txt"
     ).read_text()
 
     for token in [

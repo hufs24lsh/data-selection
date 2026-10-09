@@ -1,4 +1,4 @@
--r base.txt
+-r requirements_base.txt
 
 # Final ShallowFrontier training environment
 # CUDA-specific PyTorch wheels should be installed for the target system.
