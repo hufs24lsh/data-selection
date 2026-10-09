@@ -2,37 +2,15 @@
 
 **Energy-Efficient LLM Data Selection via Asymmetric Prefix Extrapolation**
 
-ShallowFrontier reduces the hidden compute cost of training-data selection for large language models.
-
-Instead of scoring every candidate over its full response, ShallowFrontier evaluates only a **Prefix-K** and applies asymmetric correction to the entropy signal used by InstructDiff.
+ShallowFrontier reduces the candidate-scoring cost of [InstructDiff](https://github.com/zhuchichi56/Instruct-diff) by evaluating response prefixes (K=128 or 256) and extrapolating the entropy difference used for data selection.
 
 <p align="center">
   <img src="figs/overview.png" width="92%">
 </p>
 
-## Overview
+## Results
 
-Data selection can reduce the amount of data used for final fine-tuning, but the selection process itself can be expensive when every candidate is evaluated over its full response.
-
-ShallowFrontier targets this **selection-stage overhead**.
-
-The final pipeline is:
-
-1. Warmup calibration on a fixed 2K subset.
-2. Score each candidate with the base and calibration models using only the first **K response tokens**.
-3. Apply the original raw ΔNLL q10-q90 bi-directional filter.
-4. Correct ΔH using asymmetric prefix extrapolation.
-5. Rank by corrected ΔH and select 2K samples.
-6. Fine-tune a fresh Qwen2.5-7B using the same full-FT recipe as the InstructDiff T1 reference.
-
-We evaluate two operating points:
-
-- **K=256** — primary configuration
-- **K=128** — more aggressive configuration
-
----
-
-## Main Results
+Qwen2.5-7B, Math/Medical, 20K candidates, 2K selected examples, seed 42.
 
 | Method | Math | Medical | Macro |
 |---|---:|---:|---:|
@@ -43,518 +21,130 @@ We evaluate two operating points:
 | ShallowFrontier K256 | 27.88 | 65.50 | **46.69** |
 | ShallowFrontier K128 | 28.02 | 65.19 | **46.61** |
 
-Both ShallowFrontier configurations satisfy the frozen utility criterion:
+| Method | Scoring tokens (base + calibration) | Token reduction vs. T1 | Measured E2E GPU energy | Energy reduction vs. T1 |
+|---|---:|---:|---:|---:|
+| T1 | 14,510,380 | — | 0.682982 kWh | — |
+| K256 | 10,282,340 | **29.14%** | 0.644048 kWh | **5.70%** |
+| K128 | 7,702,010 | **46.92%** | 0.605340 kWh | **11.37%** |
 
-**Macro >= 46.60**
+The prespecified operational utility tolerance is **47.10 - 0.50 = 46.60 Macro points**. Both configurations meet this threshold in the reported seed-42 run. This is not a statistical non-inferiority result.
 
-This criterion was defined as the T1 reference Macro score
-`47.10 - 0.50 = 46.60`, allowing at most a 0.50 Macro-point decrease
-(about 1.06% of T1). It is an operational utility-preservation tolerance,
-not a statistical-significance threshold or field-wide standard, and was
-frozen before the official K256 downstream evaluation.
-
-### Compute and Energy
-
-| Method | Scoring-token reduction vs T1 | E2E GPU energy | Energy reduction vs T1 |
-|---|---:|---:|---:|
-| InstructDiff T1 | 0% | 0.682982 kWh | 0% |
-| ShallowFrontier K256 | **29.14%** | 0.644048 kWh | **5.70%** |
-| ShallowFrontier K128 | **46.92%** | 0.605340 kWh | **11.37%** |
-
-E2E energy includes the matched GPU stages:
-
-**Calibration + Candidate Scoring + Final 2K Fine-Tuning**
-
-Official downstream evaluation energy is excluded from this comparison.
-
-**End-to-end GPU energy vs. downstream Macro performance.**
-The Full20K energy point is estimated; T1, K256, and K128 use
-measured matched E2E GPU energy.
+**Matched E2E GPU energy versus downstream performance.** T1/K256/K128 are measured; Full20K is an estimate from a partial run.
 
 <p align="center">
   <img src="figs/performance_energy_pareto.png" width="68%">
 </p>
 
-**Candidate-scoring cost vs. downstream Macro performance.**
-Processed scoring tokens include both the base and calibration models.
-These scoring costs are distinct from total E2E GPU energy.
+**Candidate-scoring tokens versus downstream performance.** Scoring tokens are not total training tokens.
 
 <p align="center">
   <img src="figs/scoring_cost_utility.png" width="68%">
 </p>
 
----
-
 ## Method
 
-For a signal measured at prefix depth K:
-
-- If response length L <= K, use the observed value at K.
-- If L > K, extrapolate from the change between K/2 and K.
-
-For ΔH:
+For response length `L` and prefix depth `K`, the asymmetric correction is applied to the entropy difference ΔH:
 
 ```text
-ΔH_hat = ΔH_K                                  if L <= K
-ΔH_hat = ΔH_K + (1 - K/L)(ΔH_K - ΔH_K/2)      if L > K
+ΔH_hat = ΔH_K                                if L <= K
+ΔH_hat = ΔH_K + (1 - K/L)(ΔH_K - ΔH_K/2)    if L > K
 ```
 
-The final selector uses:
+Selection uses the original **raw ΔNLL q10–q90 filter**, followed by **corrected ΔH ranking** to select 2K examples. ΔNLL is not extrapolated in the proposed method.
 
-```text
-raw ΔNLL
-   ↓
-q10-q90 filtering
-   ↓
-corrected ΔH ranking
-   ↓
-lowest 2K samples
-```
-
-The correction is applied only to ΔH.
-
-### Correction Ablation
-
-| Correction | K128 overlap | K256 overlap |
+| Correction | K128 T1 overlap | K256 T1 overlap |
 |---|---:|---:|
-| Raw | 62.55% | 79.05% |
+| Raw prefix | 62.55% | 79.05% |
 | NLL-only | 61.75% | 78.40% |
-| **H-only** | **66.05%** | **81.40%** |
+| **H-only (ShallowFrontier)** | **66.05%** | **81.40%** |
 | Both | 65.10% | 80.85% |
 
-ΔH-only correction produced the highest selected-set overlap with the full-response T1 reference at both evaluated depths.
-
-**Evidence boundary:** this table is an overlap ablation, not a downstream
-performance ablation. No published run currently establishes that higher T1
-selection overlap from the correction causes higher Math/Medical/Macro
-utility. The matched downstream ablation required to test that claim is
-specified in `docs/research_validation_plan.md`.
-
----
-
-## Repository Structure
-
-```text
-.
-├── configs/
-│   └── instructdiff_t1_reference.yaml
-│
-├── scripts/
-│   ├── scoring/
-│   │   ├── prefix128_score.py
-│   │   └── prefix256_score.py
-│   ├── selection/
-│   │   └── select_from_scores.py
-│   ├── training/
-│   │   ├── train_k128_fullft.py
-│   │   └── train_k256_fullft.py
-│   ├── evaluation/
-│   ├── energy/
-│   └── plots/
-│
-├── src/
-│   └── instdiff/
-│
-├── eval/
-│   ├── math_evaluation/
-│   ├── medeval/
-│   └── run_all_eval.py
-│
-├── results/
-│   ├── performance/
-│   ├── selections/
-│   ├── cost/
-│   ├── energy/
-│   └── manifests/
-│
-├── figs/
-└── docs/
-```
-
----
+These are selected-set overlaps, **not** downstream correction-ablation results.
 
 ## Reproduction
 
 Run all commands below from the **repository root**.
 
-### 0. Environment Setup
-
-Core / training environment:
+**Environment (Python 3.10; separate training and evaluation environments):**
 
 ```bash
 python -m pip install -r requirements-train.txt
+python scripts/repro/check_environment.py --profile train --strict
 ```
 
-Evaluation environment:
+For evaluation, activate a separate environment and run:
 
 ```bash
 python -m pip install -r requirements-eval.txt
-```
-
-The evaluation requirements install the bundled `latex2sympy2`
-implementation used by the Math evaluator. For exact reproduction,
-use Python 3.10 and CUDA-compatible PyTorch/vLLM builds matching the
-versions documented in `docs/reproducibility.md`.
-
-After activating the corresponding environment, the recorded environment can
-be checked explicitly:
-
-```bash
-python scripts/repro/check_environment.py --profile train --strict
 python scripts/repro/check_environment.py --profile eval --strict
 ```
 
-The public requirements files are install specifications, not a complete
-historical transitive dependency lock. Exact environment reconstruction is
-therefore limited by the package information preserved from the original run.
+Requirements are installation specifications, not a full historical dependency lock. Recorded package versions, hardware and training hyperparameters are in [Reproducibility](docs/reproducibility.md).
 
-Release-integrity checks can be run without a GPU:
+**Model:** Qwen2.5-7B, at `models/Qwen2.5-7B` by default. Override with `SHALLOWFRONTIER_BASE_MODEL`.
 
-```bash
-python -m pip install -r requirements-dev.txt
-ruff check --select F821 scripts tests
-python -m pytest -q tests
-```
+**Data:** The exact K128/K256 selected 2K sets are provided in `results/selections/`. Candidate scoring additionally requires the matching 20K pool and calibration model, which are not included; see [Data](data/README.md).
 
-The same checks are executed by GitHub Actions on every push and pull
-request.
+**Scoring and selection:** `scripts/scoring/prefix128_score.py`, `scripts/scoring/prefix256_score.py` and `scripts/selection/select_from_scores.py`.
 
-### 1. Base Model
-
-The experiments use:
-
-```text
-Qwen2.5-7B
-```
-
-By default, the training scripts expect:
-
-```text
-models/Qwen2.5-7B
-```
-
-A custom location can be provided with:
+**Final 2K full fine-tuning** (matched two-GPU configuration):
 
 ```bash
-export SHALLOWFRONTIER_BASE_MODEL=/path/to/Qwen2.5-7B
-```
-
-### 2. Data
-
-The final candidate pool contains 20,000 examples:
-
-- 10,000 Math
-- 10,000 Medical
-
-Random seed:
-
-```text
-42
-```
-
-Large raw datasets and the mixed 20K candidate-pool file are not redistributed in this repository.
-
-To rerun candidate scoring and selection, provide the exact pool at:
-
-```text
-data/mixed/math10k_med10k_seed42.jsonl
-```
-
-with SHA-256:
-
-```text
-3c31c43d47065b1b850568588ae17fdd06e7b9f8e7f9f819a812d459b54b1f05
-```
-
-The exact final K256 and K128 selected 2K training sets are included in
-`results/selections/`, so final fine-tuning can be reproduced without
-reconstructing the 20K pool.
-
-Full selection-stage reproduction additionally requires the base model
-and a calibration model produced with the frozen T1 warmup recipe.
-The warmup subset used by the study has SHA-256:
-
-```text
-ada4cb631860df9039fb4aced93ef56fba2ab92ceb723f993fb70d2ede2a0326
-```
-
-See `data/README.md` and `docs/reproducibility.md` for the frozen hashes,
-training recipe, experiment scope, and the three explicit reproducibility
-levels. In particular, reconstruction from raw upstream datasets is **not yet
-fully reproducible** from the public artifacts.
-
-### 3. Prefix Scoring
-
-Exact scoring implementations are provided for:
-
-- K=128
-- K=256
-
-under:
-
-```text
-scripts/scoring/
-```
-
-### 4. Selection
-
-Selection is performed with:
-
-```text
-scripts/selection/select_from_scores.py
-```
-
-using raw ΔNLL filtering followed by corrected ΔH ranking.
-
-### 5. Final Full Fine-Tuning
-
-The public training entrypoints intentionally enforce the execution
-topology used by the frozen experiment: two visible GPUs, a single
-Python process, and the recorded CUDA allocator setting.
-
-K256:
-
-```bash
-CUDA_VISIBLE_DEVICES=0,1 \
-WORLD_SIZE=1 \
+CUDA_VISIBLE_DEVICES=0,1 WORLD_SIZE=1 \
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 python scripts/training/train_k256_fullft.py
 ```
 
-K128:
-
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 \
-WORLD_SIZE=1 \
+CUDA_VISIBLE_DEVICES=0,1 WORLD_SIZE=1 \
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 python scripts/training/train_k128_fullft.py
 ```
 
-`LOCAL_RANK`, `RANK`, `MASTER_ADDR`, and `MASTER_PORT` must remain unset.
-The scripts also verify the selected-set SHA, row count, TF32 state, and
-resolved training arguments before marking a run complete.
+Leave `LOCAL_RANK`, `RANK`, `MASTER_ADDR` and `MASTER_PORT` unset.
 
-The frozen training recipe is:
-
-```text
-model_max_length: 2048
-per_device_train_batch_size: 1
-global_batch_size: 64
-epochs: 3
-learning_rate: 2e-5
-optimizer: adamw_bnb_8bit
-bf16: true
-gradient_checkpointing: true
-scheduler: cosine
-warmup_ratio: 0.05
-weight_decay: 0.01
-max_grad_norm: 1.0
-seed: 42
-```
-
-### 6. Evaluation
-
-Math benchmarks:
-
-- Math-OAI
-- Minerva Math
-- OlympiadBench
-- AIME24
-- AMC23
-
-Medical benchmarks:
-
-- MedQA
-- MMLU Medical
-- MedMCQA
-
-The aggregate metric is:
-
-```text
-Macro = (Math Average + Medical Average) / 2
-```
-
-After activating the evaluation environment, run:
+**Downstream evaluation** (from the activated evaluation environment):
 
 ```bash
 bash scripts/evaluation/eval_k256_official.sh
-```
-
-or:
-
-```bash
 bash scripts/evaluation/eval_k128_official.sh
 ```
 
-The official wrappers verify the frozen evaluator files before launching
-Math and Medical evaluation. The Math wrapper internally invokes
-`python3`, so `python` and `python3` should resolve to the same activated
-evaluation environment.
+The Math average covers Math-OAI, Minerva Math, OlympiadBench, AIME24 and AMC23; the Medical average covers MedQA, MMLU Medical and MedMCQA. `Macro = (Math Average + Medical Average) / 2`.
 
----
+**CPU tests:**
 
-## Energy Measurement
-
-GPU energy was measured at 1 Hz using NVML device-energy counters.
-
-Relevant files:
-
-```text
-scripts/energy/energy_logger.py
-scripts/energy/measure_idle_baseline.py
-results/energy/
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q tests
 ```
 
-Primary reporting uses **gross GPU energy**.
+## Energy and Sustainability
 
-Idle-adjusted values are retained as secondary measurements.
-
-The published `results/energy/stage_markers.csv` standardizes K128
-stage names. Timestamps, events, and exit codes are unchanged from the
-historical markers, but the normalized file is not byte-identical to the
-original. The original marker file remains available in Git history.
-The corresponding 1 Hz NVML counter log was recovered on the experiment
-server but is not included in this public repository.
-
-The audited energy aggregation implementation is:
-
-```text
-scripts/energy/aggregate_energy.py
-```
-
-With the recovered counters, linear interpolation at stage boundaries and
-46.953 W idle adjustment reproduce the frozen T1, K256, and K128 gross
-and idle-adjusted E2E GPU energy values within `1e-9 kWh`.
-
-This establishes numerical reconstruction on the historical server, not
-public-only raw-log reproducibility or identity with the original aggregation
-source code. The historical measurement protocol was recovered and verified;
-its public counterpart uses a generalized Python executable path. See
-`docs/energy_provenance.md` for checksums and measurement limitations.
+Matched E2E GPU energy sums **warmup calibration + candidate scoring + final 2K fine-tuning**, measured with 1 Hz NVML GPU counters. Official downstream evaluation, CPU, memory, storage and datacenter overhead are excluded. Primary results use gross GPU energy.
 
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">
 </p>
 
----
-
-## Sustainability Metrics
-
-QCCR and SUE are **study-specific descriptive reporting metrics**. They are
-not statistical tests, field-wide standards, or by themselves evidence of
-generalization.
-
-### QCCR
-
-**Quality-Constrained Carbon Reduction (QCCR)** reports the reduction in
-operational carbon conditional on satisfying the frozen utility threshold.
-With one fixed grid-carbon factor shared across methods, the percentage carbon
-reduction is numerically identical to the percentage gross GPU-energy
-reduction. Absolute CO2eq values are derived from energy rather than directly
-measured.
-
-For this study:
-
-```text
-utility threshold = 46.60
-```
-
-Results:
-
-- T1: 0%
-- K256: 5.70%
-- K128: 11.37%
-
-### SUE
-
-**Sustainable Utility Efficiency (SUE)** normalizes downstream utility gain by operational carbon cost relative to T1.
-
 <p align="center">
   <img src="figs/sue.png" width="64%">
 </p>
-
-Within the single-seed evaluated configurations, K128 achieved the highest
-reported SUE. This should not be interpreted as a statistically established
-ranking across training seeds.
-
----
-
-## Additional Analysis
-
-### Prefix Depth Trade-off
 
 <p align="center">
   <img src="figs/prefix_depth_tradeoff.png" width="64%">
 </p>
 
-### CO2 Scale-out Scenario
+**Carbon scale-out is a modeled scenario**, not direct CO₂ measurement. The 2023 Korean consumption-end electricity factor is **0.4173 kgCO₂eq/kWh**, from the [official government announcement](https://mcee.go.kr/home/web/board/read.do?pagerOffset=530&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=10598&orgCd=&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator=). QCCR and SUE are study-specific descriptive measures, not statistical tests.
 
 <p align="center">
   <img src="figs/co2_scaleout_scenario.png" width="64%">
 </p>
 
-The scale-out scenario applies the official 2023 Korean
-consumption-end electricity factor (**0.4173 kgCO2eq/kWh**)
-to measured GPU-energy differences. CO2eq is modeled rather
-than directly measured. See [energy provenance](docs/energy_provenance.md)
-for the official source.
+The reported comparison uses **one training seed**. No multi-seed uncertainty or non-inferiority conclusion is available. The raw 1 Hz energy log and the exact raw-data-to-20K construction inputs are not distributed; complete end-to-end reconstruction therefore requires additional artifacts. See [Reproducibility](docs/reproducibility.md).
 
----
+## License and Citation
 
-## Reproducibility Notes
+ShallowFrontier builds on [InstructDiff](https://github.com/zhuchichi56/Instruct-diff). Original ShallowFrontier contributions are offered under the [MIT License](LICENSE); upstream code, evaluation components and datasets remain subject to their respective rights. See [NOTICE](NOTICE) and [third-party licensing](docs/licensing.md).
 
-- Random seed: **42**
-- K256 is the primary ShallowFrontier configuration.
-- K128 is the predefined secondary, more aggressive operating point.
-- The downstream utility criterion **Macro >= 46.60** was frozen before the official K256 evaluation.
-- Full20K compute cost reported in the accompanying study is estimated from a partial matched run and is not presented as a completed measured run.
-- Reported energy and carbon values refer to **GPU-attributed operational energy**.
-- CPU, RAM, storage, networking, cooling, and datacenter PUE are outside the measurement boundary.
-- The current downstream comparison is single-seed; no confidence interval or
-  non-inferiority conclusion is available.
-- The exact raw-data-to-20K pool construction is not yet independently
-  reproducible from public artifacts.
-- Energy raw logs for the reported runs are not currently public; see
-  `docs/energy_provenance.md`.
-- License scope and upstream attribution are documented below.
-
----
-
-## License and Third-Party Code
-
-Original ShallowFrontier contributions are offered under the
-[MIT License](LICENSE). This project builds on
-[InstructDiff](https://github.com/zhuchichi56/Instruct-diff).
-Third-party software and datasets remain subject to their
-respective terms. See [NOTICE](NOTICE) and
-[licensing details](docs/licensing.md).
-
----
-
-## Upstream Attribution
-
-ShallowFrontier builds on the InstructDiff framework:
-
-**InstructDiff: Domain-Adaptive Data Selection via Differential Entropy for Efficient LLM Fine-Tuning**
-
-Official repository:
-
-https://github.com/zhuchichi56/Instruct-diff
-
-The upstream project provides the original InstructDiff framework and evaluation components.
-
-ShallowFrontier adds:
-
-- Prefix-limited candidate scoring
-- Asymmetric ΔH extrapolation
-- K128/K256 operating points
-- Matched selection-stage cost measurement
-- GPU energy measurement and sustainability analysis
-
----
-
-## Citation
-
-If you use the upstream InstructDiff framework, please cite the original InstructDiff work.
-
-A project-specific citation for ShallowFrontier will be added with the final paper release.
+Please cite the [original InstructDiff work](https://github.com/zhuchichi56/Instruct-diff#citation) when using the upstream framework.
