@@ -16,8 +16,6 @@ SOURCE = ROOT / "results/cost/final_cost_comparison.csv"
 with SOURCE.open(newline="", encoding="utf-8") as f:
     rows = {row["method"]: row for row in csv.DictReader(f)}
 
-# The canonical method identifier is K128.
-# The public display name is simply K128.
 keys = ["T1", "K256", "K128"]
 assert set(rows) == set(keys)
 
@@ -79,7 +77,7 @@ plt.rcParams.update(
 fig, ax = plt.subplots(figsize=(8.6, 5.4), facecolor="white")
 ax.set_facecolor("white")
 
-# Preserve the approved V2 ranges.
+# Plot bounds for the scoring-cost operating points.
 ax.set_xlim(6.8, 15.25)
 ax.set_ylim(45.5, 48.0)
 
@@ -160,14 +158,12 @@ for key in order:
 ax.set_xlabel("Processed scoring tokens, two models (millions)")
 ax.set_ylabel("Macro score")
 
-# Requested change 1: Bold title.
 ax.set_title(
     "Scoring-cost reduction with minimal utility change",
     pad=12,
     fontweight="bold",
 )
 
-# Requested change 2: K128 in the information box.
 textbox = "T1        14.51M\nK256    10.28M\nK128      7.70M"
 
 ax.text(

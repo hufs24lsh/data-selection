@@ -41,13 +41,15 @@ TF32 was disabled. The training environment was Python 3.10.21, PyTorch 2.13.0+c
 - Scoring cost and energy: `results/cost/` and `results/energy/`.
 - Selection and scoring implementations: `scripts/selection/` and `scripts/scoring/`.
 
+Original pre-registration and cost manifests are preserved unchanged in `results/manifests/archive/`. They record the experiment design at the time of registration, not current completion status.
+
 The selected sets support final fine-tuning with the public training scripts and base model. Full candidate scoring requires the exact 20K pool and matching warmup/calibration model. The pool, model checkpoint and complete upstream source-data reconstruction inputs are not distributed; raw-data-to-results reproduction is not available from this repository alone.
 
 ## Energy Accounting
 
 Gross GPU energy uses NVML cumulative energy counters sampled at 1 Hz, summed over calibration, candidate scoring and final 2K training. Stage aggregation is implemented in `scripts/energy/aggregate_energy.py`. Downstream evaluation, non-GPU components and datacenter PUE are outside the reported boundary. The original raw NVML counter stream is not distributed, so historical per-sample energy reconstruction is not possible with public files alone.
 
-The Full20K energy comparison is an **estimate from a partial run**, not a completed energy measurement. Operational CO₂eq values apply the 2023 Korean electricity consumption-end factor recorded in `results/energy/carbon_factor_status.json`; they are modeled values, not direct emissions measurements.
+The Full20K energy comparison is an **estimate from a partial run**, not a completed energy measurement. Operational CO₂eq values apply the 2023 Korean electricity consumption-end factor recorded in `results/energy/carbon_factor_status.json`; they are modeled values, not direct emissions measurements. The unchanged measurement protocol records the measurement-time verification rules; original logger metadata is retained in `results/energy/archive/logger_meta.json`.
 
 ## Interpretation
 

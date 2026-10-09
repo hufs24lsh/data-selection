@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Reaggregate GPU energy from a 1 Hz NVML log and stage markers.
+"""Aggregate GPU energy from NVML counter logs and stage markers.
 
-This utility is for new/future raw logs and for historical logs if they are
-recovered. It never edits frozen aggregate results.
+Input logs are read without modifying reported experimental results.
 """
 
 from __future__ import annotations
