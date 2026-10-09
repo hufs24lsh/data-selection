@@ -54,7 +54,7 @@ For response length `L` and prefix depth `K`, the asymmetric correction is appli
 ΔH_hat = ΔH_K + (1 - K/L)(ΔH_K - ΔH_K/2)    if L > K
 ```
 
-Selection uses the original **raw ΔNLL q10–q90 filter**, followed by **corrected ΔH ranking** to select 2K examples. ΔNLL is not extrapolated in the proposed method.
+Selection uses the original implementation's **raw ΔNLL q10–q90 filter**, followed by **corrected ΔH ranking** to select 2K examples. In this implementation, ΔNLL = NLL(base) − NLL(calibration), the opposite sign to Equation (1) in the paper; symmetric trimming does not generally guarantee identical tie behavior under sign reversal. ΔNLL is not extrapolated in the proposed method.
 
 | Correction | K128 T1 overlap | K256 T1 overlap |
 |---|---:|---:|
