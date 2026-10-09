@@ -243,10 +243,12 @@ The required multi-seed and correction-ablation experiments are specified in
 
 ## Energy Reproducibility Boundary
 
-The historical stage markers are published in
-`results/energy/stage_markers.csv` and match the recovered original. The
-historical 1 Hz NVML counter log was also recovered on the experiment server
-but is not redistributed in the public repository.
+The published `results/energy/stage_markers.csv` has normalized K128
+stage names. Its timestamps, events, and exit codes match the recovered
+historical markers, but the normalized file is not byte-identical to the
+original, which remains available in Git history. The historical 1 Hz NVML
+counter log was also recovered on the experiment server but is not
+redistributed in the public repository.
 
 Reaggregation of seven complete historical stages using linear interpolation
 at marker boundaries and 46.953 W idle adjustment reproduces the frozen

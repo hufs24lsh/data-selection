@@ -409,10 +409,12 @@ Primary reporting uses **gross GPU energy**.
 
 Idle-adjusted values are retained as secondary measurements.
 
-The historical stage markers are published in
-`results/energy/stage_markers.csv` and match the original experiment records
-byte-for-byte. The corresponding 1 Hz NVML counter log was recovered on the
-experiment server but is not included in this public repository.
+The published `results/energy/stage_markers.csv` standardizes K128
+stage names. Timestamps, events, and exit codes are unchanged from the
+historical markers, but the normalized file is not byte-identical to the
+original. The original marker file remains available in Git history.
+The corresponding 1 Hz NVML counter log was recovered on the experiment
+server but is not included in this public repository.
 
 The audited energy aggregation implementation is:
 
