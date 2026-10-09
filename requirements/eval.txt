@@ -1,4 +1,4 @@
--r requirements.txt
+-r base.txt
 
 # Official downstream evaluation environment
 # The experiment used PyTorch 2.11.0+cu130 and vLLM 0.26.0.

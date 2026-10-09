@@ -72,14 +72,14 @@ Run all commands below from the **repository root**.
 **Environment (Python 3.10; separate training and evaluation environments):**
 
 ```bash
-python -m pip install -r requirements-train.txt
+python -m pip install -r requirements/train.txt
 python scripts/repro/check_environment.py --profile train --strict
 ```
 
 For evaluation, activate a separate environment and run:
 
 ```bash
-python -m pip install -r requirements-eval.txt
+python -m pip install -r requirements/eval.txt
 python scripts/repro/check_environment.py --profile eval --strict
 ```
 
@@ -119,7 +119,7 @@ The Math average covers Math-OAI, Minerva Math, OlympiadBench, AIME24 and AMC23;
 **CPU tests:**
 
 ```bash
-python -m pip install -r requirements-dev.txt
+python -m pip install -r requirements/dev.txt
 python -m pytest -q tests
 ```
 
