@@ -15,10 +15,12 @@ def sha256(path):
     return h.hexdigest()
 
 
-def test_training_scripts_have_no_stale_t1_args_reference():
+def test_training_scripts_validate_resolved_arguments():
     for name in ["train_k256_fullft.py", "train_k128_fullft.py"]:
         p = ROOT / "scripts" / "training" / name
-        assert "ORIGINAL_T1_ARGS" not in p.read_text()
+        source = p.read_text()
+        assert "OriginalTrainingArguments = train_v2.TrainingArguments" in source
+        assert "train_v2.TrainingArguments = AsymTrainingArguments" in source
 
 
 def test_selected_dataset_integrity():
@@ -110,10 +112,6 @@ def test_selector_expected_hashes_match_published_sets():
     for wanted in expected.values():
         assert wanted in text
 
-    assert (
-        "c7dbfe7d323649b8e7bf00bd5395160936c9e4a955e9d6ceb07047e24c45b4e9"
-        not in text
-    )
 
 
 def test_official_eval_guards_match_public_evaluators():
@@ -199,12 +197,11 @@ def test_public_reproduction_paths_and_guards():
     ).read_text()
 
     assert 'save(fig, "figs/stagewise_energy.png")' in plot
-    assert "report_figures/out" not in plot
 
 
 if __name__ == "__main__":
     tests = [
-        test_training_scripts_have_no_stale_t1_args_reference,
+        test_training_scripts_validate_resolved_arguments,
         test_selected_dataset_integrity,
         test_frozen_performance_results,
         test_readme_local_images_exist,

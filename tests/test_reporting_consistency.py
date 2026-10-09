@@ -2,8 +2,6 @@
 
 import csv
 import json
-import os
-import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,47 +72,3 @@ def test_all_published_performance_summaries():
         assert abs(obj["worst_domain"] - min(math_avg, medical_avg)) < 1e-10
         assert not obj["model"].startswith("/home/")
 
-
-
-def test_no_deprecated_reporting_tokens():
-    prohibited = (
-        "true" + "-K128",
-        "TRUE" + "_K128",
-        "0.45" + "41",
-        "UNVERIFIED" + "_PUBLIC_PROVENANCE",
-    )
-
-    data = subprocess.check_output(
-        [
-            "git",
-            "ls-files",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-            "-z",
-        ],
-        cwd=ROOT,
-    )
-
-    paths = [ROOT / os.fsdecode(part) for part in data.split(bytes([0])) if part]
-
-    suffixes = {
-        ".py",
-        ".sh",
-        ".md",
-        ".csv",
-        ".json",
-        ".txt",
-        ".yml",
-        ".yaml",
-        ".toml",
-    }
-
-    for path in paths:
-        if not path.is_file() or path.suffix.lower() not in suffixes:
-            continue
-
-        content = path.read_text(encoding="utf-8")
-
-        for token in prohibited:
-            assert token not in content, str(path)

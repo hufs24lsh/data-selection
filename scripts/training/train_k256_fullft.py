@@ -60,7 +60,7 @@ def enum_value(x):
 
 
 # ------------------------------------------------------------
-# Historical execution topology
+# Required two-GPU execution topology
 # ------------------------------------------------------------
 
 require(
@@ -183,7 +183,7 @@ require(
 
 
 # ------------------------------------------------------------
-# Guard resolved TrainingArguments exactly as historical run.
+# Validate resolved TrainingArguments against the matched training recipe.
 # ------------------------------------------------------------
 
 OriginalTrainingArguments = train_v2.TrainingArguments

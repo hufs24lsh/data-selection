@@ -137,7 +137,7 @@ def main():
                         f"non-positive response region at row {idx}"
                     )
 
-                # Research S2 performs one forward through depth <=256.
+                # One forward pass covers at most 256 response tokens.
                 used_target_len = min(256, target_len)
                 capped_len = prompt_raw_len + used_target_len
 
