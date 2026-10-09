@@ -4,7 +4,7 @@ import json
 import time
 from pathlib import Path
 
-import numpy as np
+from core import select_indices
 
 ROOT = Path.cwd()
 N = 20000
@@ -41,8 +41,6 @@ ap.add_argument("--summary", required=True)
 args = ap.parse_args()
 
 K = args.K
-H = K // 2
-
 t0 = time.perf_counter()
 
 base = load(Path(args.base))
@@ -52,60 +50,18 @@ pool = load(ROOT / "data/mixed/math10k_med10k_seed42.jsonl")
 if not (len(base) == len(calib) == len(pool) == N):
     raise RuntimeError("row mismatch")
 
-L = np.asarray(
-    [int(x["response_tokens_full"]) for x in base],
-    dtype=np.float64,
-)
-
-dnll = np.asarray(
-    [
-        float(b[f"nll_{K}"]) - float(c[f"nll_{K}"])
-        for b, c in zip(base, calib)
-    ]
-)
-
-dh_h = np.asarray(
-    [
-        float(b[f"entropy_{H}"]) - float(c[f"entropy_{H}"])
-        for b, c in zip(base, calib)
-    ]
-)
-
-dh_k = np.asarray(
-    [
-        float(b[f"entropy_{K}"]) - float(c[f"entropy_{K}"])
-        for b, c in zip(base, calib)
-    ]
-)
-
 load_seconds = time.perf_counter() - t0
 
 t1 = time.perf_counter()
 
-dh = dh_k.copy()
-long = L > K
-
-dh[long] = (
-    dh_k[long]
-    + (1.0 - K / L[long])
-    * (dh_k[long] - dh_h[long])
+selected = select_indices(
+    base,
+    calib,
+    k=K,
+    expected_n=N,
+    trim=TRIM,
+    target=TARGET,
 )
-
-idx = list(range(N))
-
-by_nll = sorted(
-    idx,
-    key=lambda i: dnll[i],
-)
-
-filtered = by_nll[
-    TRIM:N-TRIM
-]
-
-selected = sorted(
-    filtered,
-    key=lambda i: dh[i],
-)[:TARGET]
 
 selection_seconds = time.perf_counter() - t1
 

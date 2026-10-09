@@ -1,25 +1,47 @@
 ShallowFrontier
+=============
 
-This repository contains ShallowFrontier-specific research code and
-reproducibility artifacts for energy-efficient LLM training-data selection.
+ShallowFrontier investigates reducing candidate-scoring overhead
+in differential-entropy-based LLM training-data selection.
 
-ShallowFrontier builds on the InstructDiff framework:
+Upstream research and software
+------------------------------
 
-  InstructDiff: Domain-Adaptive Data Selection via Differential Entropy
-  for Efficient LLM Fine-Tuning
+InstructDiff: Domain-Adaptive Data Selection via Differential Entropy
+for Efficient LLM Fine-Tuning
 
 Official upstream repository:
-  https://github.com/zhuchichi56/Instruct-diff
+https://github.com/zhuchichi56/Instruct-diff
 
-Original InstructDiff authors retain attribution for upstream framework
-and evaluation components incorporated or adapted in this repository.
+The InstructDiff authors retain attribution and any applicable
+rights in their original code and research contributions.
 
-The Math evaluation code under eval/math_evaluation retains its own
-upstream license notice in that directory.
+ShallowFrontier contributions
+-----------------------------
 
-ShallowFrontier-specific contributions include prefix-limited candidate
-scoring, asymmetric prefix extrapolation, matched selection-stage cost
-measurement, GPU energy analysis, and the K128/K256 experiments.
+Project-specific contributions include prefix-limited scoring,
+asymmetric entropy extrapolation, K128/K256 experiments,
+selection-stage cost analysis, GPU energy analysis, and
+associated reproducibility tooling.
 
-This NOTICE is an attribution record and does not replace licenses
-applicable to individual upstream components.
+The root MIT license applies only to original contributions
+for which its named copyright holder has licensing authority.
+It is not a license for independently owned upstream material.
+
+Third-party components
+----------------------
+
+The Math evaluator includes license terms at:
+eval/math_evaluation/LICENSE
+
+The bundled latex2sympy component includes license terms at:
+eval/math_evaluation/latex2sympy/LICENSE.txt
+
+Other upstream-derived evaluation material, datasets, and
+model dependencies require separate provenance and licensing
+consideration.
+
+See docs/licensing.md for scope and unresolved issues.
+
+This NOTICE preserves attribution and does not supersede
+applicable third-party licenses.

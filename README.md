@@ -67,8 +67,20 @@ E2E energy includes the matched GPU stages:
 
 Official downstream evaluation energy is excluded from this comparison.
 
+**End-to-end GPU energy vs. downstream Macro performance.**
+The Full20K energy point is estimated; T1, K256, and K128 use
+measured matched E2E GPU energy.
+
 <p align="center">
   <img src="figs/performance_energy_pareto.png" width="68%">
+</p>
+
+**Candidate-scoring cost vs. downstream Macro performance.**
+Processed scoring tokens include both the base and calibration models.
+These scoring costs are distinct from total E2E GPU energy.
+
+<p align="center">
+  <img src="figs/scoring_cost_utility.png" width="68%">
 </p>
 
 ---
@@ -111,6 +123,12 @@ The correction is applied only to ΔH.
 | Both | 65.10% | 80.85% |
 
 ΔH-only correction produced the highest selected-set overlap with the full-response T1 reference at both evaluated depths.
+
+**Evidence boundary:** this table is an overlap ablation, not a downstream
+performance ablation. No published run currently establishes that higher T1
+selection overlap from the correction causes higher Math/Medical/Macro
+utility. The matched downstream ablation required to test that claim is
+specified in `docs/research_validation_plan.md`.
 
 ---
 
@@ -177,6 +195,18 @@ The evaluation requirements install the bundled `latex2sympy2`
 implementation used by the Math evaluator. For exact reproduction,
 use Python 3.10 and CUDA-compatible PyTorch/vLLM builds matching the
 versions documented in `docs/reproducibility.md`.
+
+After activating the corresponding environment, the recorded environment can
+be checked explicitly:
+
+```bash
+python scripts/repro/check_environment.py --profile train --strict
+python scripts/repro/check_environment.py --profile eval --strict
+```
+
+The public requirements files are install specifications, not a complete
+historical transitive dependency lock. Exact environment reconstruction is
+therefore limited by the package information preserved from the original run.
 
 Release-integrity checks can be run without a GPU:
 
@@ -249,7 +279,9 @@ ada4cb631860df9039fb4aced93ef56fba2ab92ceb723f993fb70d2ede2a0326
 ```
 
 See `data/README.md` and `docs/reproducibility.md` for the frozen hashes,
-training recipe, and experiment scope.
+training recipe, experiment scope, and the three explicit reproducibility
+levels. In particular, reconstruction from raw upstream datasets is **not yet
+fully reproducible** from the public artifacts.
 
 ### 3. Prefix Scoring
 
@@ -377,6 +409,29 @@ Primary reporting uses **gross GPU energy**.
 
 Idle-adjusted values are retained as secondary measurements.
 
+The published `results/energy/stage_markers.csv` standardizes K128
+stage names. Timestamps, events, and exit codes are unchanged from the
+historical markers, but the normalized file is not byte-identical to the
+original. The original marker file remains available in Git history.
+The corresponding 1 Hz NVML counter log was recovered on the experiment
+server but is not included in this public repository.
+
+The audited energy aggregation implementation is:
+
+```text
+scripts/energy/aggregate_energy.py
+```
+
+With the recovered counters, linear interpolation at stage boundaries and
+46.953 W idle adjustment reproduce the frozen T1, K256, and K128 gross
+and idle-adjusted E2E GPU energy values within `1e-9 kWh`.
+
+This establishes numerical reconstruction on the historical server, not
+public-only raw-log reproducibility or identity with the original aggregation
+source code. The historical measurement protocol was recovered and verified;
+its public counterpart uses a generalized Python executable path. See
+`docs/energy_provenance.md` for checksums and measurement limitations.
+
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">
 </p>
@@ -385,9 +440,18 @@ Idle-adjusted values are retained as secondary measurements.
 
 ## Sustainability Metrics
 
+QCCR and SUE are **study-specific descriptive reporting metrics**. They are
+not statistical tests, field-wide standards, or by themselves evidence of
+generalization.
+
 ### QCCR
 
-**Quality-Constrained Carbon Reduction (QCCR)** measures the reduction in operational carbon while satisfying the frozen utility threshold.
+**Quality-Constrained Carbon Reduction (QCCR)** reports the reduction in
+operational carbon conditional on satisfying the frozen utility threshold.
+With one fixed grid-carbon factor shared across methods, the percentage carbon
+reduction is numerically identical to the percentage gross GPU-energy
+reduction. Absolute CO2eq values are derived from energy rather than directly
+measured.
 
 For this study:
 
@@ -409,7 +473,9 @@ Results:
   <img src="figs/sue.png" width="64%">
 </p>
 
-Within the evaluated configurations, K128 achieved the highest SUE.
+Within the single-seed evaluated configurations, K128 achieved the highest
+reported SUE. This should not be interpreted as a statistically established
+ranking across training seeds.
 
 ---
 
@@ -427,7 +493,11 @@ Within the evaluated configurations, K128 achieved the highest SUE.
   <img src="figs/co2_scaleout_scenario.png" width="64%">
 </p>
 
-The scale-out plot is a scenario based on the measured per-run GPU-energy difference and should not be interpreted as a directly observed deployment footprint.
+The scale-out scenario applies the official 2023 Korean
+consumption-end electricity factor (**0.4173 kgCO2eq/kWh**)
+to measured GPU-energy differences. CO2eq is modeled rather
+than directly measured. See [energy provenance](docs/energy_provenance.md)
+for the official source.
 
 ---
 
@@ -440,6 +510,24 @@ The scale-out plot is a scenario based on the measured per-run GPU-energy differ
 - Full20K compute cost reported in the accompanying study is estimated from a partial matched run and is not presented as a completed measured run.
 - Reported energy and carbon values refer to **GPU-attributed operational energy**.
 - CPU, RAM, storage, networking, cooling, and datacenter PUE are outside the measurement boundary.
+- The current downstream comparison is single-seed; no confidence interval or
+  non-inferiority conclusion is available.
+- The exact raw-data-to-20K pool construction is not yet independently
+  reproducible from public artifacts.
+- Energy raw logs for the reported runs are not currently public; see
+  `docs/energy_provenance.md`.
+- License scope and upstream attribution are documented below.
+
+---
+
+## License and Third-Party Code
+
+Original ShallowFrontier contributions are offered under the
+[MIT License](LICENSE). This project builds on
+[InstructDiff](https://github.com/zhuchichi56/Instruct-diff).
+Third-party software and datasets remain subject to their
+respective terms. See [NOTICE](NOTICE) and
+[licensing details](docs/licensing.md).
 
 ---
 

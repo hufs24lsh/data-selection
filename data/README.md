@@ -22,6 +22,33 @@ SHA-256:
 3c31c43d47065b1b850568588ae17fdd06e7b9f8e7f9f819a812d459b54b1f05
 ```
 
+
+## Provenance and Reconstruction Status
+
+The public release currently identifies the frozen candidate pool by its
+composition, expected path, row count, seed, and SHA-256. It does **not** yet
+contain enough verified information to reconstruct that exact SHA-256 from
+upstream raw datasets alone.
+
+In particular, the following items remain missing or unverified in the public
+artifacts:
+
+- exact upstream dataset snapshot/version identifiers for the Math and Medical
+  source pools;
+- the exact sampling implementation and source ordering;
+- any duplicate-removal or filtering procedure used before the 10K+10K merge;
+- the exact JSONL serialization rules used when the frozen pool was written;
+- the complete public recipe that regenerates the frozen calibration subset.
+
+These omissions are treated as a reproducibility gap rather than filled in by
+inference. Upstream InstructDiff configuration files reference Math and Medical
+training files, but those references alone are not proof of the exact
+ShallowFrontier pool lineage.
+
+If the original pool-construction code and source manifests are recovered,
+they should be added as new provenance artifacts while preserving the existing
+pool and warmup hashes unchanged.
+
 ## Warmup Calibration Subset
 
 The InstructDiff T1 reference and ShallowFrontier cost-matched experiments use the same fixed 2,000-example warmup subset.
