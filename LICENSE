@@ -1,23 +1,3 @@
-ShallowFrontier — License Scope
-
-The MIT license below applies only to original, copyrightable
-ShallowFrontier contributions for which the named copyright holder
-has authority to grant permission.
-
-This includes independently authored ShallowFrontier project code
-and documentation, to the extent owned by that holder. It does not
-grant rights in copied or adapted InstructDiff code, third-party
-evaluation software, datasets, pretrained models, or third-party
-content embedded in research artifacts.
-
-Some files may combine original contributions with upstream-derived
-material. This license grants permission only for the original
-contributions, not for independently owned material in those files.
-
-See docs/licensing.md and NOTICE for component boundaries and
-attribution. This notice does not alter any existing third-party
-license.
-
 MIT License
 
 Copyright (c) 2026 Seungho Lee
