@@ -14,12 +14,16 @@ Qwen2.5-7B, Math/Medical, 20K candidates, 2K selected examples, seed 42.
 
 | Method | Math | Medical | Macro |
 |---|---:|---:|---:|
-| Base | 12.06 | 65.19 | 38.63 |
+| Base | 12.06 | 65.20 | 38.63 |
 | Full20K | 29.17 | 57.37 | 43.27 |
 | Random2K | 26.66 | 62.96 | 44.81 |
 | InstructDiff T1 | 28.62 | 65.59 | **47.10** |
+| InstructDiff T2 | 27.63 | 64.65 | 46.14 |
+| InstructDiff T3 | 29.23 | 62.42 | 45.83 |
 | ShallowFrontier K256 | 27.88 | 65.50 | **46.69** |
 | ShallowFrontier K128 | 28.02 | 65.19 | **46.61** |
+
+Full per-benchmark scores for all eight methods: [results/performance/](results/performance/).
 
 | Method | Scoring tokens (base + calibration) | Token reduction vs. T1 | Measured E2E GPU energy | Energy reduction vs. T1 |
 |---|---:|---:|---:|---:|
@@ -123,6 +127,24 @@ python -m pytest -q tests
 
 Matched E2E GPU energy sums **warmup calibration + candidate scoring + final 2K fine-tuning**, measured with 1 Hz NVML GPU counters. Official downstream evaluation, CPU, memory, storage and datacenter overhead are excluded. Primary results use gross GPU energy.
 
+**QCCR (Quality-Constrained Carbon Reduction)** is the T1-relative operational carbon reduction among methods meeting the prespecified utility criterion, **Macro ≥ 46.60**:
+
+```text
+QCCR(m) = 100 × (1 - C_m / C_T1) %, if Macro(m) ≥ 46.60
+C_m = gross E2E GPU energy(m) × grid carbon factor
+```
+
+Methods below the threshold do not qualify. Because the same grid factor is applied to each method, QCCR equals the percentage gross GPU-energy reduction: **5.70% (K256)** and **11.37% (K128)**.
+
+**SUE (Sustainable Utility Efficiency)** normalizes the improvement over the untrained Base model by operational carbon cost, relative to T1:
+
+```text
+SUE(m) = [(Macro(m) - Macro(Base)) / (Macro(T1) - Macro(Base))]
+         / [C_m / C_T1]
+```
+
+The figure uses the exact Base, T1, K256 and K128 Macro scores from [results/performance/](results/performance/) and measured E2E GPU energy from [results/cost/](results/cost/). **SUE(T1) = 1.00**. Both metrics are study-specific descriptive measures, not statistical tests.
+
 <p align="center">
   <img src="figs/stagewise_energy.png" width="68%">
 </p>
@@ -135,7 +157,7 @@ Matched E2E GPU energy sums **warmup calibration + candidate scoring + final 2K 
   <img src="figs/prefix_depth_tradeoff.png" width="64%">
 </p>
 
-**Carbon scale-out is a modeled scenario**, not direct CO₂ measurement. The 2023 Korean consumption-end electricity factor is **0.4173 kgCO₂eq/kWh**, from the [official government announcement](https://mcee.go.kr/home/web/board/read.do?pagerOffset=530&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=10598&orgCd=&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator=). QCCR and SUE are study-specific descriptive measures, not statistical tests.
+**Carbon scale-out is a modeled scenario**, not direct CO₂ measurement. The 2023 Korean consumption-end electricity factor is **0.4173 kgCO₂eq/kWh**, from the [official government announcement](https://mcee.go.kr/home/web/board/read.do?pagerOffset=530&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=10598&orgCd=&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator=). 
 
 <p align="center">
   <img src="figs/co2_scaleout_scenario.png" width="64%">

@@ -1,15 +1,29 @@
+import csv
+import json
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 from common import METHOD_COLORS, save, setup
 
 setup()
 
+root = Path(__file__).resolve().parents[2]
+with (root / "results/cost/final_cost_comparison.csv").open(newline="") as stream:
+    cost = {row["method"]: row for row in csv.DictReader(stream)}
+
 data = {
-    "T1": {"macro": 47.1000, "energy": 0.682982},
-    "K256": {"macro": 46.6894, "energy": 0.644048},
-    "K128": {"macro": 46.6057, "energy": 0.605340},
+    method: {
+        "macro": json.loads(
+            (root / f"results/performance/{method.lower()}_summary.json").read_text()
+        )["macro"],
+        "energy": float(cost[method]["gross_gpu_kwh"]),
+    }
+    for method in ("T1", "K256", "K128")
 }
 
-base_macro = 38.625
+base_macro = json.loads(
+    (root / "results/performance/base_summary.json").read_text()
+)["macro"]
 t1_macro = data["T1"]["macro"]
 t1_energy = data["T1"]["energy"]
 

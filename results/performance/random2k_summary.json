@@ -1,0 +1,20 @@
+{
+  "name": "qwen7b_mixed20k_unified_balanced2k_seed42",
+  "model": "runs/baselines/mixed_balanced_random2000_seed42_unified/model",
+  "math": {
+    "math_oai": 57.1125,
+    "minerva_math": 15.08125,
+    "olympiadbench": 21.974999999999998,
+    "aime24": 5.4,
+    "amc23": 33.75,
+    "avg": 26.66375
+  },
+  "medical": {
+    "medqa": 60.40848389630793,
+    "mmlu_medical": 74.40671778021175,
+    "medmcqa": 54.076021993784366,
+    "avg": 62.96374122343468
+  },
+  "macro": 44.81374561171734,
+  "worst_domain": 26.66375
+}
