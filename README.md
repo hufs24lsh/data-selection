@@ -521,14 +521,11 @@ for the official source.
 ## License and Third-Party Code
 
 Original ShallowFrontier contributions are offered under the
-[MIT License](LICENSE), to the extent owned by the named copyright
-holder. This does **not** relicense inherited InstructDiff code,
-third-party evaluation components, or datasets and research
-artifacts.
-
-See [Licensing and Attribution](docs/licensing.md) and
-[NOTICE](NOTICE) for scope, existing component licenses,
-and unresolved upstream permissions.
+[MIT License](LICENSE). This project builds on
+[InstructDiff](https://github.com/zhuchichi56/Instruct-diff).
+Third-party software and datasets remain subject to their
+respective terms. See [NOTICE](NOTICE) and
+[licensing details](docs/licensing.md).
 
 ---
 
