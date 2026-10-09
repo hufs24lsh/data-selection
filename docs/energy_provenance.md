@@ -166,7 +166,7 @@ For current carbon reporting, the official Republic of Korea
 - Announcement date: **2025-12-18**.
 - Issuer: Ministry of Climate, Energy and Environment,
   Republic of Korea.
-- Official source: https://mcee.go.kr/home/web/board/read.do?boardCategoryId=39&boardId=1829260&boardMasterId=1
+- Official source: https://mcee.go.kr/home/web/board/read.do?pagerOffset=530&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=10598&orgCd=&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator=
 - Boundary: national-average consumption-end electricity.
 
 The official unit of tCO2eq/MWh is numerically identical to

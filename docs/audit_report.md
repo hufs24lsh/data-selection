@@ -374,7 +374,7 @@ modifications must be regenerated and visually inspected before release.
 Republic of Korea 2023 consumption-end electricity factor of
 `0.4173 kgCO2eq/kWh`, announced on 2025-12-18.
 
-The official source (https://mcee.go.kr/home/web/board/read.do?boardCategoryId=39&boardId=1829260&boardMasterId=1), reference year, announcement date,
+The official source (https://mcee.go.kr/home/web/board/read.do?pagerOffset=530&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=10598&orgCd=&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator=), reference year, announcement date,
 boundary and verification status are recorded in
 `results/energy/carbon_factor_status.json`. CO2eq estimates are
 calculated from measured GPU energy rather than directly measured.

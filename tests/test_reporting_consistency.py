@@ -29,7 +29,9 @@ def test_canonical_reporting_data():
     assert meta["factor_boundary"] == "consumption-end"
     assert meta["source"] == (
         "https://mcee.go.kr/home/web/board/read.do"
-        "?boardCategoryId=39&boardId=1829260&boardMasterId=1"
+        "?pagerOffset=530&maxPageItems=10&maxIndexPages=10"
+        "&searchKey=&searchValue=&menuId=10598&orgCd="
+        "&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator="
     )
 
     with (ROOT / "results/energy/stage_markers.csv").open(

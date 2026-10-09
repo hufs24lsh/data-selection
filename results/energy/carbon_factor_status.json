@@ -1,7 +1,7 @@
 {
   "kgCO2eq_per_kWh": 0.4173,
   "status": "VERIFIED_OFFICIAL_SOURCE",
-  "source": "https://mcee.go.kr/home/web/board/read.do?boardCategoryId=39&boardId=1829260&boardMasterId=1",
+  "source": "https://mcee.go.kr/home/web/board/read.do?pagerOffset=530&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=10598&orgCd=&boardMasterId=939&boardCategoryId=&boardId=1829260&decorator=",
   "reference_year": 2023,
   "publication_date": "2025-12-18",
   "geography": "Republic of Korea",
