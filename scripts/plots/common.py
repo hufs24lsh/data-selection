@@ -9,7 +9,6 @@ METHOD_COLORS = {
 }
 
 DISPLAY_NAME = {
-    "true-K128": "K128",
     "K128": "K128",
     "K256": "K256",
     "T1": "T1",

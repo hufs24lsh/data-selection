@@ -16,21 +16,21 @@ SOURCE = ROOT / "results/cost/final_cost_comparison.csv"
 with SOURCE.open(newline="", encoding="utf-8") as f:
     rows = {row["method"]: row for row in csv.DictReader(f)}
 
-# The original experimental key is retained for data compatibility.
+# The canonical method identifier is K128.
 # The public display name is simply K128.
-keys = ["T1", "K256", "true-K128"]
+keys = ["T1", "K256", "K128"]
 assert set(rows) == set(keys)
 
 display = {
     "T1": "T1",
     "K256": "K256",
-    "true-K128": "K128",
+    "K128": "K128",
 }
 
 colors = {
     "T1": METHOD_COLORS["T1"],
     "K256": METHOD_COLORS["K256"],
-    "true-K128": METHOD_COLORS["K128"],
+    "K128": METHOD_COLORS["K128"],
 }
 
 data = {}
@@ -46,7 +46,7 @@ for key in keys:
 expected_tokens = {
     "T1": 14510380,
     "K256": 10282340,
-    "true-K128": 7702010,
+    "K128": 7702010,
 }
 
 for key in keys:
@@ -61,7 +61,7 @@ for key in keys:
 
 assert abs(data["T1"]["macro"] - 47.1) < 1e-9
 assert abs(data["K256"]["macro"] - 46.68940115767946) < 1e-9
-assert abs(data["true-K128"]["macro"] - 46.60570178330249) < 1e-9
+assert abs(data["K128"]["macro"] - 46.60570178330249) < 1e-9
 
 plt.rcParams.update(
     {
@@ -95,7 +95,7 @@ for spine in ("left", "bottom"):
 # Horizontal comparison lines.
 connectors = [
     ("K256", 46.08, 0.06, "bottom"),
-    ("true-K128", 45.86, -0.06, "top"),
+    ("K128", 45.86, -0.06, "top"),
 ]
 
 for key, y, offset, vertical_alignment in connectors:
@@ -123,7 +123,7 @@ for key, y, offset, vertical_alignment in connectors:
         fontweight="semibold",
     )
 
-order = ["true-K128", "K256", "T1"]
+order = ["K128", "K256", "T1"]
 
 for key in order:
     ax.scatter(
@@ -139,7 +139,7 @@ for key in order:
 label_offsets = {
     "T1": (-10, 8, "right"),
     "K256": (8, 6, "left"),
-    "true-K128": (8, -12, "left"),
+    "K128": (8, -12, "left"),
 }
 
 for key in order:

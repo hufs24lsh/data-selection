@@ -1,7 +1,8 @@
 # Energy Measurement Provenance Audit
 
 This note separates historical experiment evidence from the public rerun
-protocol. It does not alter any frozen result or manifest.
+protocol. Numeric experimental results and frozen manifests are unchanged.
+Current public reporting identifiers have been standardized.
 
 ## What is independently inspectable
 
@@ -38,8 +39,12 @@ Recovered evidence:
   `d0fe60258fce097511640167f50898c295fa5a0db5d02379095cd682c65a12c1`.
 - Historical stage-marker SHA-256:
   `059d2adf837e4c7a3c088072b21157d2f7f544d24a5b8afb784e658c0a378e26`.
-- The public `results/energy/stage_markers.csv` is byte-identical
-  to the historical stage-marker file.
+- The original published stage-marker CSV was byte-identical to the
+  historical measurement log.
+- The current CSV standardizes K128 stage labels only. All timestamps,
+  events and exit codes are unchanged.
+- The original file is recoverable from Git commit `5b8410beb0cc093a71441e01f9b0f793fbfbc300`.
+- The standardized stage-marker SHA-256 is `4ea47c4ed4e3c4c2649c44c294bc29e0d3a596aa622eb60bf8e1bb514f8962ff`.
 - Historical-window snapshot: 17,000 CSV data rows, SHA-256
   `48ee1f3d2c835de809a50ce69d774bee4448d586b0e9dc4ad1ff702cd22816da`.
 - Seven complete matched-comparison stages were reaggregated.
@@ -153,17 +158,26 @@ Carbon emissions are derived, not directly measured:
 operational_CO2eq = measured_GPU_kWh * grid_carbon_intensity
 ```
 
-A carbon-intensity value must be accompanied by its source, geography,
-reference year, publication date, and whether it is average or marginal grid
-intensity. The placeholder `0.4173 kgCO2eq/kWh` inside the public protocol is
-explicitly marked unverified and must not be used as a final reported factor.
+For current carbon reporting, the official Republic of Korea
+**2023 consumption-end electricity emissions factor** is used:
 
-The release's CO2 scale-out script historically used
-`0.4541 kgCO2eq/kWh`. The numerical factor is preserved for reproducibility,
-but its source, reference year, and publication date are not preserved in the
-public artifacts. Its status is therefore recorded as
-`UNVERIFIED_PUBLIC_PROVENANCE` in
-`results/energy/carbon_factor_status.json`. This audit does not invent the
-missing citation.
+- Factor: **0.4173 kgCO2eq/kWh**.
+- Reference year: **2023**.
+- Announcement date: **2025-12-18**.
+- Issuer: Ministry of Climate, Energy and Environment,
+  Republic of Korea.
+- Official source: https://mcee.go.kr/home/web/board/read.do?boardCategoryId=39&boardId=1829260&boardMasterId=1
+- Boundary: national-average consumption-end electricity.
 
-Any scale-out CO2 figure is a scenario estimate, not a measured emission.
+The official unit of tCO2eq/MWh is numerically identical to
+kgCO2eq/kWh. Current reporting metadata is stored in
+`results/energy/carbon_factor_status.json`.
+
+The historical energy measurement protocol remains frozen.
+Its prospective verification flag describes the status when
+that protocol was originally created, not the status of current
+reporting.
+
+The factor converts measured gross GPU energy into modeled
+operational CO2eq. It does not represent a direct measurement
+of emissions and excludes unmeasured infrastructure overhead.

@@ -1,3 +1,4 @@
+import csv
 import json
 from pathlib import Path
 
@@ -11,11 +12,17 @@ FACTOR_PATH = ROOT / "results" / "energy" / "carbon_factor_status.json"
 
 factor_meta = json.loads(FACTOR_PATH.read_text(encoding="utf-8"))
 EMISSION_FACTOR = float(factor_meta["kgCO2eq_per_kWh"])
-FACTOR_STATUS = factor_meta["status"]
 
-t1_energy = 0.682982
-k256_energy = 0.644048
-k128_energy = 0.605340
+COST_PATH = ROOT / "results/cost/final_cost_comparison.csv"
+
+with COST_PATH.open(newline="", encoding="utf-8") as f:
+    cost_rows = {row["method"]: row for row in csv.DictReader(f)}
+
+assert set(cost_rows) == {"T1", "K256", "K128"}
+
+t1_energy = float(cost_rows["T1"]["gross_gpu_kwh"])
+k256_energy = float(cost_rows["K256"]["gross_gpu_kwh"])
+k128_energy = float(cost_rows["K128"]["gross_gpu_kwh"])
 
 save_per_run_k256 = (t1_energy - k256_energy) * EMISSION_FACTOR
 save_per_run_k128 = (t1_energy - k128_energy) * EMISSION_FACTOR
@@ -67,17 +74,6 @@ ax.set_title(
 ax.grid(True, alpha=0.25)
 ax.legend(frameon=False)
 
-fig.text(
-    0.5,
-    0.01,
-    (
-        f"Scenario conversion: {EMISSION_FACTOR:.4f} kgCO2eq/kWh; "
-        f"factor provenance status: {FACTOR_STATUS}. "
-        "GPU-only operational-energy scope."
-    ),
-    ha="center",
-    fontsize=8,
-)
 
 save(fig, "figs/co2_scaleout_scenario.png")
 print("Saved: figs/co2_scaleout_scenario.png")

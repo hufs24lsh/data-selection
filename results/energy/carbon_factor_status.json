@@ -1,11 +1,12 @@
 {
-  "kgCO2eq_per_kWh": 0.4541,
-  "status": "UNVERIFIED_PUBLIC_PROVENANCE",
-  "source": null,
-  "reference_year": null,
-  "publication_date": null,
+  "kgCO2eq_per_kWh": 0.4173,
+  "status": "VERIFIED_OFFICIAL_SOURCE",
+  "source": "https://mcee.go.kr/home/web/board/read.do?boardCategoryId=39&boardId=1829260&boardMasterId=1",
+  "reference_year": 2023,
+  "publication_date": "2025-12-18",
   "geography": "Republic of Korea",
-  "interpretation": "Study conversion factor preserved for scenario reproduction; source metadata is not preserved in the public repository and must be independently verified before a publication-grade emissions claim.",
+  "interpretation": "Official Korean consumption-end electricity emissions factor for reference year 2023. Applied to gross GPU board energy for modeled operational CO2eq emissions.",
   "formula": "operational_CO2eq_kg = measured_GPU_kWh * kgCO2eq_per_kWh",
-  "measurement_scope_note": "GPU-attributed operational energy only; carbon is derived, not directly measured."
+  "measurement_scope_note": "GPU-attributed operational energy only; carbon is derived, not directly measured.",
+  "factor_boundary": "consumption-end"
 }

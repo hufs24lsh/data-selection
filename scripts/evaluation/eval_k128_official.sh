@@ -148,7 +148,7 @@ echo "===== OFFICIAL MATH + MEDICAL EVAL ====="
 
 RC=$?
 
-echo "ASYM_TRUE_K128_OFFICIAL_EVAL_EXIT_CODE=$RC"
+echo "ASYM_K128_OFFICIAL_EVAL_EXIT_CODE=$RC"
 
 [ "$RC" -eq 0 ] || exit "$RC"
 

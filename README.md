@@ -67,6 +67,18 @@ E2E energy includes the matched GPU stages:
 
 Official downstream evaluation energy is excluded from this comparison.
 
+**End-to-end GPU energy vs. downstream Macro performance.**
+The Full20K energy point is estimated; T1, K256, and K128 use
+measured matched E2E GPU energy.
+
+<p align="center">
+  <img src="figs/performance_energy_pareto.png" width="68%">
+</p>
+
+**Candidate-scoring cost vs. downstream Macro performance.**
+Processed scoring tokens include both the base and calibration models.
+These scoring costs are distinct from total E2E GPU energy.
+
 <p align="center">
   <img src="figs/scoring_cost_utility.png" width="68%">
 </p>
@@ -479,7 +491,11 @@ ranking across training seeds.
   <img src="figs/co2_scaleout_scenario.png" width="64%">
 </p>
 
-The scale-out plot is a scenario based on the measured per-run GPU-energy difference and should not be interpreted as a directly observed deployment footprint.
+The scale-out scenario applies the official 2023 Korean
+consumption-end electricity factor (**0.4173 kgCO2eq/kWh**)
+to measured GPU-energy differences. CO2eq is modeled rather
+than directly measured. See [energy provenance](docs/energy_provenance.md)
+for the official source.
 
 ---
 
