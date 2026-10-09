@@ -1,47 +1,17 @@
 ShallowFrontier
 =============
 
-ShallowFrontier investigates reducing candidate-scoring overhead
-in differential-entropy-based LLM training-data selection.
-
-Upstream research and software
-------------------------------
-
-InstructDiff: Domain-Adaptive Data Selection via Differential Entropy
-for Efficient LLM Fine-Tuning
-
-Official upstream repository:
+Based on InstructDiff: Domain-Adaptive Data Selection via Differential
+Entropy for Efficient LLM Fine-Tuning
 https://github.com/zhuchichi56/Instruct-diff
 
-The InstructDiff authors retain attribution and any applicable
-rights in their original code and research contributions.
+ShallowFrontier contributes prefix-limited scoring, asymmetric ΔH
+extrapolation, K128/K256 configurations, evaluation and energy analysis.
 
-ShallowFrontier contributions
------------------------------
+The root MIT License applies only to independently owned ShallowFrontier
+contributions, not inherited code or third-party datasets. Existing
+component notices and licenses remain applicable, including:
+- eval/math_evaluation/LICENSE
+- eval/math_evaluation/latex2sympy/LICENSE.txt
 
-Project-specific contributions include prefix-limited scoring,
-asymmetric entropy extrapolation, K128/K256 experiments,
-selection-stage cost analysis, GPU energy analysis, and
-associated reproducibility tooling.
-
-The root MIT license applies only to original contributions
-for which its named copyright holder has licensing authority.
-It is not a license for independently owned upstream material.
-
-Third-party components
-----------------------
-
-The Math evaluator includes license terms at:
-eval/math_evaluation/LICENSE
-
-The bundled latex2sympy component includes license terms at:
-eval/math_evaluation/latex2sympy/LICENSE.txt
-
-Other upstream-derived evaluation material, datasets, and
-model dependencies require separate provenance and licensing
-consideration.
-
-See docs/licensing.md for scope and unresolved issues.
-
-This NOTICE preserves attribution and does not supersede
-applicable third-party licenses.
+See docs/licensing.md for the scope of third-party rights.
