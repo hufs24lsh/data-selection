@@ -54,6 +54,20 @@ reference answers or data-fitted constants are used.
 | **4 · Allocate & route** | shares *k ∝ n / B*; *B < b* takes the lowest H_base rows, otherwise the ΔNLL filter, then the lowest ΔH | [`selection.py`](src/shallowfrontier/selection.py) |
 
 <details>
+<summary><b>Why two routes?</b></summary>
+
+<br>
+
+The gradient noise scale *B* is the number of examples needed to average out how much per-example gradients disagree. If *B < b*, one
+batch already averages the disagreement away: what is left to learn in the group is a shared direction, typically the answer format,
+and the rows the base model finds easiest show it most cleanly. If *B ≥ b*, rows pull in different directions and carry their own
+content, so InstructDiff's contrast between the base and calibrated models picks the rows that still teach something. On the same Qwen
+math rows, changing the training recipe moves *B / b* from 0.27 to 1.49 and flips the winner between the two rules (+2.22 and −1.84
+points, seed 42). Evidence and limitations: [`docs/method.md`](docs/method.md#6-why-two-routes).
+
+</details>
+
+<details>
 <summary><b>Why the name?</b></summary>
 
 <br>
