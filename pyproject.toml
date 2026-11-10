@@ -4,16 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shallowfrontier"
-version = "0.1.0"
-description = "Energy-efficient LLM data selection via asymmetric prefix extrapolation"
+version = "1.0.0"
+description = "ShallowFrontier: label-free, energy-efficient data selection for LLM fine-tuning"
+readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.10"
-dependencies = [
-    "numpy",
-    "tqdm",
-]
+dependencies = ["numpy", "pyyaml"]
+
+[project.optional-dependencies]
+gpu = ["torch", "transformers"]
+
+[project.scripts]
+shallowfrontier = "shallowfrontier.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
