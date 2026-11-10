@@ -1,56 +1,50 @@
 # Reproducibility
 
-## Experimental Setup
+## Setup of our runs
 
-| Setting | Value |
+- **Hardware:** two NVIDIA RTX 5090 (32 GB). Training uses both GPUs (per-device batch 1, gradient accumulation to the global batch);
+  feature extraction, scoring and noise measurement use one.
+- **Software:**
+  - training: transformers 4.47.1, bitsandbytes 0.50.2 (`requirements/requirements_train.txt`);
+  - evaluation: PyTorch 2.11 (CUDA 13), vLLM 0.26 (`requirements/requirements_eval.txt`).
+- **Recipes** (`configs/testbeds/`): full-parameter SFT for 3 epochs with a cosine schedule, 5% warm-up, weight decay 0.01,
+  clipping 1.0 and 8-bit AdamW in bf16. The mixed pools use lr 2e-5, global batch 64 and length 2048; the math pool uses
+  5e-5 / 256 / 2048 and the medical pool 2e-5 / 64 / 512. Every method on a testbed uses the same recipe.
+- **Seeds:** one seed drives the whole pipeline: the calibration subset, calibration training, the noise-measurement order and the
+  final training. Rounds or stages never mix seeds.
+
+## What has been checked against our runs
+
+Each check ran the released code (`src/shallowfrontier`) on the saved artifacts of our experiments and compared the outputs byte for byte.
+
+| Check | Result |
 |---|---|
-| Base model | Qwen2.5-7B |
-| Candidate pool | 20,000 (10K Math + 10K Medical) |
-| Selected training set | 2,000 |
-| Seed | 42 |
-| Prefix depths | K=256 (primary), K=128 |
-| Training | Full-parameter SFT, 2 × RTX 5090 |
-| Utility | Macro = (Math average + Medical average) / 2 |
+| Selections from saved scores, groups and noise (5 testbeds × seeds 42, 43, 44) | 15 / 15 identical |
+| Calibration subsets of every calibration run | 17 / 17 identical |
+| Mixed pools from InstructDiff's source files (`scripts/make_mixed_pools.py`) | 2 / 2 identical |
+| Groups from saved prompt features (5 testbeds) | 5 / 5 identical |
+| Sign convention of ΔH and ΔNLL against InstructDiff's scored.jsonl | identical (base − calibrated) |
 
-### Final fine-tuning
+**Not yet checked on GPU with this code:** the noise measurement and the scorer. They are ported with the same seeds, sketch indices and
+row order, and their decision rules are unit-tested. The scorer computes in fp32, while InstructDiff's computes in fp16, so scores can
+differ in the last digits. Our runs used InstructDiff's round-1 scores.
 
-The matched T1/K256/K128 training configuration:
+## Energy accounting (end to end)
 
-```text
-model_max_length              2048
-per_device_train_batch_size   1
-global_batch_size             64
-num_train_epochs              3
-learning_rate                 2e-5
-optimizer                     adamw_bnb_8bit
-bf16                          true
-gradient_checkpointing        true
-lr_scheduler_type             cosine
-warmup_ratio                  0.05
-weight_decay                  0.01
-max_grad_norm                 1.0
-seed                          42
-```
+- **Definition:** E2E energy = selection + final fine-tuning, as GPU energy from the NVML total-energy counters of the GPUs in use.
+  Evaluation is excluded. Values are the mean over the measured runs.
+- **InstructDiff:** per-round records of the official pipeline (calibration, scoring, fine-tuning), cumulative over rounds.
+  - Base-model scoring is counted once; rounds 2–3 add the calibrated-model pass and that round's fine-tuning.
+  - Its best round is only known after all three rounds, so that cost is the T3 row.
+- **ShallowFrontier:** its own measured calibration and final fine-tuning. Scoring is priced at the same per-pass rate as InstructDiff's
+  pipeline (base pass, plus the calibrated pass where a group takes the InstructDiff route). Noise measurement is its run time × the
+  measured mean power of single-GPU scoring (0.60 kW).
+- **Compute units:** with F = one forward pass over the pool, the final fine-tune costs 0.9F for every method. InstructDiff's three rounds
+  cost 7.6F, and ShallowFrontier averaged 3.6F over the four testbeds, the same 53% reduction as the measured energy.
 
-TF32 was disabled. The training environment was Python 3.10.21, PyTorch 2.13.0+cu132, Transformers 4.47.1 and bitsandbytes 0.50.2. The evaluation environment was Python 3.10.21, vLLM 0.26.0, PyTorch 2.11.0+cu130 and Transformers 5.17.0. Use `scripts/repro/check_environment.py` to check the recorded versions. A complete transitive dependency lock is not provided.
+## Known differences from the InstructDiff paper
 
-## Data and Results
-
-- Selected 2K training sets: `results/selections/` (published with SHA-256 values in [Data](../data/README.md)).
-- Performance summaries: `results/performance/`.
-- Scoring cost and energy: `results/cost/` and `results/energy/`.
-- Selection and scoring implementations: `scripts/selection/` and `scripts/scoring/`.
-
-Original pre-registration and cost manifests are preserved unchanged in `results/manifests/archive/`. They record the experiment design at the time of registration, not current completion status.
-
-The selected sets support final fine-tuning with the public training scripts and base model. Full candidate scoring requires the exact 20K pool and matching warmup/calibration model. The pool, model checkpoint and complete upstream source-data reconstruction inputs are not distributed; raw-data-to-results reproduction is not available from this repository alone.
-
-## Energy Accounting
-
-Gross GPU energy uses NVML cumulative energy counters sampled at 1 Hz, summed over calibration, candidate scoring and final 2K training. Stage aggregation is implemented in `scripts/energy/aggregate_energy.py`. Downstream evaluation, non-GPU components and datacenter PUE are outside the reported boundary. The original raw NVML counter stream is not distributed, so historical per-sample energy reconstruction is not possible with public files alone.
-
-The Full20K energy comparison is an **estimate from a partial run**, not a completed energy measurement. Operational CO₂eq values apply the 2023 Korean electricity consumption-end factor recorded in `results/energy/carbon_factor_status.json`; they are modeled values, not direct emissions measurements. The archived protocol (`results/energy/archive/energy_measurement_protocol.json`, SHA-256 `b52f3a4a2dc83254ff63f0c16f6553934c7b3bf94949e2fa7bdd2a9571d9e350`) and logger metadata are preserved under `results/energy/archive/`. The logger metadata references a distinct protocol SHA-256 (`d0fe60258fce097511640167f50898c295fa5a0db5d02379095cd682c65a12c1`); their historical relationship has not been established. The current verified carbon factor is recorded separately in `results/energy/carbon_factor_status.json`.
-
-## Interpretation
-
-The reported downstream comparison uses seed 42 only. The criterion `Macro >= 46.60` is an operational 0.50-point tolerance relative to T1 (47.10), not evidence of statistical non-inferiority. The correction-ablation table in the README measures selection overlap, not a causal downstream performance improvement.
+- **Math:** our reproduced InstructDiff scores are 1.7–3.5 points below the published ones, and full-data training is stronger than
+  reported.
+- **Comparison:** all methods share one recipe and one implementation here, so the comparison is internal. The published runs'
+  environment is not available.

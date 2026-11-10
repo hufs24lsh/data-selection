@@ -1,7 +1,8 @@
-# copy from https://github.com/zhuchichi56/ASFT.
+# Adapted from InstructDiff (https://github.com/zhuchichi56/Instruct-diff, MIT), which takes this file from
+# https://github.com/zhuchichi56/ASFT. Changes in this repository are marked "Modified".
 import os
 
-# 수정본, epoch 3을 위해
+# Modified: math is used by the exact epoch-step correction in train()
 import math
 
 import copy
@@ -177,11 +178,12 @@ class EnhancedTrainer(Trainer):
 
                     weighted_losses = dft_losses + self.kl_weight * kl_div
 
-                ''' 원본, 로스
+                ''' Upstream loss (token mean within the micro-batch):
                 loss = (weighted_losses[valid_mask].sum() / valid_mask.sum())
                 '''
 
-                #수정본, 로스
+                # Modified loss: token mean over the whole accumulated batch (num_items_in_batch), so gradient accumulation
+                # matches one large batch
                 if num_items_in_batch is not None:
                     loss = weighted_losses[valid_mask].sum() / num_items_in_batch
                 else:
@@ -512,7 +514,7 @@ def train(
 
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
 
-    # 수정본, epoch 3을 위해
+    # Modified: exact epoch-step correction (an exact number of optimizer steps for integer epochs)
     if training_args.max_steps <= 0 and world_size == 1:
         requested_epochs = float(num_train_epochs)
         if not requested_epochs.is_integer():

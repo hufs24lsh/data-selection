@@ -1,4 +1,5 @@
 numpy
+PyYAML
+matplotlib
 pytest
-pytest-cov
 ruff

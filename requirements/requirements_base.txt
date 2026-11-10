@@ -1,6 +1,3 @@
-# Shared lightweight dependencies
+# Selection pipeline (CPU steps); GPU steps also need torch and transformers
 numpy
-tqdm
-matplotlib
 PyYAML
-nvidia-ml-py

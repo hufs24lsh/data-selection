@@ -1,12 +1,35 @@
 # Data
 
-The experiments use a seed-42 candidate pool of **20,000 examples** (10K Math + 10K Medical) and a shared **2,000-example warmup subset**.
+ShallowFrontier uses the training pools of [InstructDiff](https://github.com/zhuchichi56/Instruct-diff) (commit `28adfe3`). The data are not
+redistributed here; this folder holds only the instructions and the row orders of the mixed pools.
 
-| Artifact | SHA-256 |
-|---|---|
-| `data/mixed/math10k_med10k_seed42.jsonl` (20K candidate pool; not distributed) | `3c31c43d47065b1b850568588ae17fdd06e7b9f8e7f9f819a812d459b54b1f05` |
-| Warmup subset (2K; not distributed) | `ada4cb631860df9039fb4aced93ef56fba2ab92ceb723f993fb70d2ede2a0326` |
-| `results/selections/k256_selected.jsonl` (2K; included) | `61411aeffad57e5662b861a887de114b49138525f12e41ab2a39e7d555028a22` |
-| `results/selections/k128_selected.jsonl` (2K; included) | `c382b4bc65388d3ff3140e4fb3d42eafd6149d6b275974872ee30afdfec245f2` |
+## 1. Source files
 
-The candidate pool's original source snapshots and exact construction procedure are not provided. The frozen warmup/calibration model is also not provided. Final selected-set fine-tuning is supported by the published data and training scripts; full selection-stage reproduction requires those additional inputs.
+Clone InstructDiff with Git LFS (the math file is an LFS object) and copy two files into this folder:
+
+```bash
+git lfs install
+git clone https://github.com/zhuchichi56/Instruct-diff.git && git -C Instruct-diff checkout 28adfe3 && git -C Instruct-diff lfs pull
+cp Instruct-diff/data/numina_cot_10k.jsonl Instruct-diff/data/train_medmcqa_alpaca_10k.jsonl data/
+```
+
+| File | Rows | SHA-256 |
+|---|---:|---|
+| `data/numina_cot_10k.jsonl` (math) | 10,000 | `a172916f9661937772d123e614cf1066b6c0586d2a871a8548988750d5a96b18` |
+| `data/train_medmcqa_alpaca_10k.jsonl` (medical) | 10,000 | `43c2aed3caf6be5afc973c5733d07029ec318e764c27f2cc77560210c51bca37` |
+
+## 2. Mixed pools
+
+```bash
+python scripts/make_mixed_pools.py
+```
+
+writes the two mixed pools byte for byte and checks their SHA-256. Each row is a source row with a `domain` field appended (`math` or
+`med`); `data/mixed/*.order.json` stores only which source line goes where.
+
+| Pool | Rows | SHA-256 |
+|---|---:|---|
+| `data/mixed/math10k_med10k_seed42.jsonl` (all 10K math + all 10K medical) | 20,000 | `3c31c43d47065b1b850568588ae17fdd06e7b9f8e7f9f819a812d459b54b1f05` |
+| `data/mixed/math5k_med5k_seed42.jsonl` (5K math + 5K medical) | 10,000 | `7cf5dfa483818bb7aa1bce9b169510b26c31daff2ec452b7e738d95fe60b99f9` |
+
+The `domain` field is used only to report the composition of a selection; ShallowFrontier never reads it.

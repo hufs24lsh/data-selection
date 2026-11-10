@@ -1,0 +1,8 @@
+# Llama-3-8B on 10K MedMCQA questions (medical only). Paper testbed 3.
+base_model: meta-llama/Meta-Llama-3-8B
+pool: data/train_medmcqa_alpaca_10k.jsonl
+template: "{instruction}"
+k: 1000
+calibration: {size: 1000, limit: 10000}
+recipe: {lr: 2.0e-5, batch: 64, max_length: 512}
+eval: med

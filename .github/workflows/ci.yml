@@ -1,11 +1,11 @@
-name: Release integrity
+name: tests
 
 on:
   push:
   pull_request:
 
 jobs:
-  smoke-test:
+  cpu-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,19 +20,11 @@ jobs:
       - name: Install test tools
         run: python -m pip install -r requirements/requirements_dev.txt
 
-      - name: Undefined-name check
-        run: ruff check --select F821 scripts tests
+      - name: Lint (syntax errors and undefined names)
+        run: ruff check --select E9,F63,F7,F82 src scripts tests eval/medeval
 
-      - name: Bash syntax
-        run: |
-          bash -n scripts/evaluation/eval_k256_official.sh
-          bash -n scripts/evaluation/eval_k128_official.sh
+      - name: Shell syntax
+        run: bash -n scripts/run_shallowfrontier.sh
 
-      - name: Evaluation wrapper CPU preflight
-        run: |
-          EVAL_PY=python bash scripts/evaluation/eval_k256_official.sh --preflight-only
-          EVAL_PY=python bash scripts/evaluation/eval_k128_official.sh --preflight-only
-
-      - name: CPU semantic and release tests
-        run: |
-          python -m pytest -q tests --cov=scripts/selection --cov-report=term-missing
+      - name: Unit tests (selection, grouping, noise rule, scoring rules, pools, command line)
+        run: python -m pytest -q

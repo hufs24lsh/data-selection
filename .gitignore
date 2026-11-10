@@ -33,12 +33,12 @@ runs/
 eval/results/
 eval/**/outputs/
 
-# Raw/local datasets
+# Datasets: InstructDiff's files are downloaded into data/; mixed pools are built by scripts/make_mixed_pools.py
 data/*
 !data/README.md
-
-# Energy raw logs
-device_energy_1hz.csv
+!data/mixed/
+data/mixed/*
+!data/mixed/*.order.json
 
 # Temporary files
 tmp/

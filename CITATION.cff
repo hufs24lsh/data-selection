@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "ShallowFrontier: Energy-Efficient LLM Data Selection via Asymmetric Prefix Extrapolation"
+type: software
+authors:
+  - family-names: Lee
+    given-names: Seungho
+    affiliation: "Hankuk University of Foreign Studies"
+  - family-names: Yang
+    given-names: Suchan
+    affiliation: "Hankuk University of Foreign Studies"
+abstract: >-
+  ShallowFrontier selects 10% of an instruction-tuning pool for full fine-tuning with one shallow calibration run.
+  It groups the pool from the prompts alone, measures each group's gradient noise scale, and selects differently
+  in each learning phase, without domain labels or reference answers.
+keywords:
+  - large language models
+  - data selection
+  - instruction tuning
+  - energy efficiency
+  - green AI
+repository-code: "https://github.com/hufs24lsh/data-selection"
+license: MIT
+version: 1.0.0
+date-released: "2026-11-11"

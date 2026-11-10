@@ -1,0 +1,8 @@
+# Llama-3-8B on a 10K mixed pool (5K math + 5K medical). Mixed-pool problem case in the paper.
+base_model: meta-llama/Meta-Llama-3-8B
+pool: data/mixed/math5k_med5k_seed42.jsonl
+template: null
+k: 1000
+calibration: {size: 1000, limit: 10000}
+recipe: {lr: 2.0e-5, batch: 64, max_length: 2048}
+eval: mixed
