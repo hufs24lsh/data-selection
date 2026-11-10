@@ -1,0 +1,8 @@
+# Qwen2.5-7B on 10K NuminaMath-CoT problems (math only). Paper testbed 4.
+base_model: Qwen/Qwen2.5-7B
+pool: data/numina_cot_10k.jsonl
+template: null                      # the Alpaca prompt
+k: 1000                             # 10% of the pool
+calibration: {size: 1000, limit: 10000}
+recipe: {lr: 5.0e-5, batch: 256, max_length: 2048}
+eval: math

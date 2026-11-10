@@ -1,0 +1,8 @@
+# Qwen2.5-7B on a 20K mixed pool (10K math + 10K medical, built by scripts/make_mixed_pools.py). Paper testbed 2.
+base_model: Qwen/Qwen2.5-7B
+pool: data/mixed/math10k_med10k_seed42.jsonl
+template: null
+k: 2000
+calibration: {size: 2000, limit: 20000}
+recipe: {lr: 2.0e-5, batch: 64, max_length: 2048}
+eval: mixed

@@ -1,0 +1,8 @@
+# Llama-3-8B on the 20K mixed pool. Paper testbed 1.
+base_model: meta-llama/Meta-Llama-3-8B
+pool: data/mixed/math10k_med10k_seed42.jsonl
+template: null
+k: 2000
+calibration: {size: 2000, limit: 20000}
+recipe: {lr: 2.0e-5, batch: 64, max_length: 2048}
+eval: mixed
