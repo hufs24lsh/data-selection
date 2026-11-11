@@ -68,6 +68,18 @@ points, seed 42). Evidence and limitations: [`docs/method.md`](docs/method.md#6-
 </details>
 
 <details>
+<summary><b>Why group first?</b></summary>
+
+<br>
+
+*B* is a property of a set of rows, not of one row. Measured over a whole mixed pool, the difference between kinds of rows (math vs.
+medical) would be counted as noise and inflate *B*, and there would be nothing to allocate shares between. Groups also let the
+measurement use a small sample per group. Prompt groups recover the domains with 97–99% purity and no labels; whether they are the best
+units in gradient space has not been tested directly yet. Details: [`docs/method.md`](docs/method.md#7-why-group-first).
+
+</details>
+
+<details>
 <summary><b>Why the name?</b></summary>
 
 <br>

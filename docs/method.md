@@ -22,6 +22,7 @@ InstructDiff's per-row statistics over the response tokens, under M_base and M_c
 - **Clustering:** cosine k-means with k-means++ seeding, for k = 2, …, ⌊√(n/2)⌋. The k with the largest exact mean silhouette wins.
 - **No structure:** if the best silhouette is below 0.25, the pool stays one group. On our mixed pools this gives two groups that are
   97–99% math or medical, without any domain tag.
+- Why the pool is grouped before the noise is measured: section 7.
 
 ## 4. Per-group gradient noise scale (`src/shallowfrontier/noise.py`)
 
@@ -101,6 +102,37 @@ near zero, and B would come out large for every group. B / b therefore describes
 - On Llama-3-8B the development evidence was weaker: a few small groups pointed the other way.
 - In every mixed pool the math group had a smaller B than the medical group, so a domain effect is not fully separated from the noise
   effect. The Qwen pools, where math groups fall on both sides, are the main evidence against a domain-only rule.
+
+## 7. Why group first
+
+**B belongs to a set of rows.** The noise scale compares how much per-row gradients disagree with the size of their mean, so it is
+defined for a set, not for a single row. Measured over a whole pool it gives one number: one route for every row and nothing to
+allocate.
+
+**Pooling different kinds of rows inflates B.** If two kinds of rows pull the model in different mean directions, measuring them
+together adds the difference between the kinds to the disagreement and shrinks the mean gradient, so the pooled B is usually larger
+than either group's. A group that is still learning a shared direction can then look like B ≥ b and take the wrong route. In our runs
+the two groups of one pool differ by a factor of 2–4 (Qwen2.5-7B, Mixed 20K: 2.43 and 5.60; Llama-3-8B, Mixed 20K: 0.18 and 0.73).
+
+**Shares need groups.** The allocation k_g ∝ n_g / B_g is what keeps every group, and every domain of a mixed pool, above zero rows.
+A single ranking over the pool has no such guarantee: InstructDiff's rounds kept between 0.2% and 78% medical rows on the 50% medical
+pools.
+
+**Measuring a sample is cheap.** One row of noise measurement costs about four scoring passes (a forward and a backward pass). Groups
+let the measurement use a held-out sample per group and stop once the selection is settled; our runs measured 2–26% of a pool.
+
+**Why prompts, and what is not yet shown.**
+
+- Prompt features need no labels and only a base-model pass over the prompts. On our mixed pools they recover math and medical with
+  97–99% purity, and the two domains respond to calibration in opposite ways: on held-out pool questions, math accuracy rises by
+  9.7–20.3 points while Llama-3-8B medical accuracy falls by 4.0–6.9.
+- Rows in a group need not have similar gradients; their disagreement is what B measures. Splitting a population that is in fact
+  homogeneous is harmless, since both parts get about the same B, route and share per row. The risk is the opposite case: two
+  populations that look alike in their prompts but learn differently, for example one kind of question answered in short and in long
+  styles, would be merged and their B inflated.
+- That prompt groups are the right units is so far supported only indirectly: domain recovery, distinct B per group and end-to-end
+  results. A direct check in gradient space, comparing the gradient variance explained by prompt groups with random partitions and
+  with clusters of the gradients themselves, is future work.
 
 ## Constants and where they come from
 

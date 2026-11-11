@@ -68,6 +68,18 @@ batch 안에서 엇갈림이 이미 지워집니다. 그 group에 남은 학습�
 </details>
 
 <details>
+<summary><b>왜 먼저 묶는가?</b></summary>
+
+<br>
+
+*B*는 데이터 하나가 아니라 데이터 묶음의 성질입니다. 혼합 데이터 전체를 한 번에 재면 데이터 종류 사이의 차이(수학 대 의학)까지
+noise로 섞여 *B*가 부풀고, 선택 수를 나눌 단위도 없어집니다. 묶음이 있으면 묶음마다 작은 표본만 재도 됩니다. 질문(prompt) 묶음은
+분야 표시 없이 분야를 97–99% 정확하게 되찾지만, gradient 공간에서 가장 알맞은 단위인지는 아직 직접 시험하지 않았습니다. 자세한 내용:
+[`docs/method.md`](docs/method.md#7-why-group-first) (영문).
+
+</details>
+
+<details>
 <summary><b>이름의 뜻</b></summary>
 
 <br>
