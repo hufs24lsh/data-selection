@@ -47,7 +47,7 @@ InstructDiff's per-row statistics over the response tokens, under M_base and M_c
 ## 5. Shares and routes (`src/shallowfrontier/selection.py`)
 
 - **Share:** k_g ∝ n_g / B_g, rounded with the largest-remainder rule. A group with clean gradient signal (small B) gets more rows,
-  and no group gets zero.
+  and no group gets zero. Why this direction: section 7.
 - **Route:**
   - B_g / b < 1: the group's rows with the lowest H_base ("easy" rows).
   - B_g / b ≥ 1: InstructDiff's rule inside the group. Drop 10% at each tail of ΔNLL, then take the lowest ΔH.
@@ -137,6 +137,21 @@ B / b < 1, and InstructDiff's round 1 when B / b ≥ 1. Our runs of those baseli
 Single values are seed 42; ± values are the mean and standard deviation over seeds 42–44. On the Llama-3-8B mixed pools a single
 ranking keeps almost no medical rows and the medical score collapses (MCF 53.00 against 61.44 on the 20K pool). On the Qwen2.5-7B
 mixed pool the scores are within seed noise, and the medical share of the selection moves from 11% to 28%.
+
+**Which way the shares lean.** With the groups, routes and within-group rankings unchanged, the shares were also set in proportion
+to n_g alone (every group gives the same fraction of its rows) and to n_g · B_g (more rows to noisier groups), seed 42:
+
+| Pool | n_g / B_g (ShallowFrontier) | n_g | n_g · B_g |
+|---|---:|---:|---:|
+| Qwen2.5-7B · Mixed 20K | 47.38 (28% medical) | 46.70 (47%) | 47.61 (65%) |
+| Llama-3-8B · Mixed 20K | 34.61 (17%) | 34.24 (47%) | 33.39 (76%) |
+| Llama-3-8B · Mixed 10K | 34.05 (20%) | 33.49 (47%) | 32.18 (74%) |
+
+Leaning toward the noisier groups loses 1.22 and 1.87 points on the Llama-3-8B pools, where 76% medical rows even lower the medical
+score (MCF 59.63 against 61.44 with 17%); on the Qwen2.5-7B pool it is 0.23 higher, within seed noise. Shares by group size alone
+score lower than n_g / B_g on all three pools. The large-batch model points the same way: with a fixed number of rows and other
+things equal, the best loss decrease per example is ΔL_max / (b + B) (McCandlish et al., 2018), larger where B is small, so rows go
+where each teaches more. It fixes the direction, not the form; n_g / B_g leans further than 1 / (b + B).
 
 **Measuring a sample is cheap.** One row of noise measurement costs about four scoring passes (a forward and a backward pass). Groups
 let the measurement use a held-out sample per group and stop once the selection is settled; our runs measured 2–26% of a pool.
