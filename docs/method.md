@@ -109,14 +109,34 @@ near zero, and B would come out large for every group. B / b therefore describes
 defined for a set, not for a single row. Measured over a whole pool it gives one number: one route for every row and nothing to
 allocate.
 
-**Pooling different kinds of rows inflates B.** If two kinds of rows pull the model in different mean directions, measuring them
-together adds the difference between the kinds to the disagreement and shrinks the mean gradient, so the pooled B is usually larger
-than either group's. A group that is still learning a shared direction can then look like B ≥ b and take the wrong route. In our runs
-the two groups of one pool differ by a factor of 2–4 (Qwen2.5-7B, Mixed 20K: 2.43 and 5.60; Llama-3-8B, Mixed 20K: 0.18 and 0.73).
+**What pooling does to B.** Pooling mixes the groups' noise levels and adds any difference between their mean gradients to the
+disagreement. In theory the pooled B can then land above both groups; in our pools it landed between them (pooled values from
+development measurements with the same recipes, group values from the final runs, both at the end of calibration):
+
+| Pool | Pooled B / b | Group B / b |
+|---|---:|---|
+| Qwen2.5-7B · Mixed 20K | 4.76 | 2.43, 5.60 |
+| Llama-3-8B · Mixed 20K | 0.34 | 0.18, 0.73 |
+| Llama-3-8B · Mixed 10K | 0.54 | 0.22, 0.75 |
+| Qwen2.5-7B · Math 10K | 0.27 | 0.25, 0.24 |
+
+A pooled measurement would therefore have chosen the same route as the group measurements in every pool. What grouping changes is the
+allocation.
 
 **Shares need groups.** The allocation k_g ∝ n_g / B_g is what keeps every group, and every domain of a mixed pool, above zero rows.
-A single ranking over the pool has no such guarantee: InstructDiff's rounds kept between 0.2% and 78% medical rows on the 50% medical
-pools.
+With one pooled B the method reduces to one rule over the whole pool: the lowest-H_base ranking (the EntropyMin baseline) when
+B / b < 1, and InstructDiff's round 1 when B / b ≥ 1. Our runs of those baselines measure the effect of grouping:
+
+| Testbed | Rule with one pooled B | One pooled B | Grouped (ShallowFrontier) |
+|---|---|---:|---:|
+| Llama-3-8B · Mixed 20K | lowest H_base (4 medical rows of 2,000) | 30.36 | 34.61 |
+| Llama-3-8B · Mixed 10K | lowest H_base | 29.70 | 34.05 |
+| Qwen2.5-7B · Math 10K | lowest H_base | 28.36 ± 0.18 | 29.13 ± 0.57 |
+| Qwen2.5-7B · Mixed 20K | InstructDiff's round 1 | 47.23 ± 0.12 | 47.01 ± 0.32 |
+
+Single values are seed 42; ± values are the mean and standard deviation over seeds 42–44. On the Llama-3-8B mixed pools a single
+ranking keeps almost no medical rows and the medical score collapses (MCF 53.00 against 61.44 on the 20K pool). On the Qwen2.5-7B
+mixed pool the scores are within seed noise, and the medical share of the selection moves from 11% to 28%.
 
 **Measuring a sample is cheap.** One row of noise measurement costs about four scoring passes (a forward and a backward pass). Groups
 let the measurement use a held-out sample per group and stop once the selection is settled; our runs measured 2–26% of a pool.
@@ -126,13 +146,17 @@ let the measurement use a held-out sample per group and stop once the selection 
 - Prompt features need no labels and only a base-model pass over the prompts. On our mixed pools they recover math and medical with
   97–99% purity, and the two domains respond to calibration in opposite ways: on held-out pool questions, math accuracy rises by
   9.7–20.3 points while Llama-3-8B medical accuracy falls by 4.0–6.9.
+- Grouping rows by their own gradients is not practical. A single row's gradient is mostly noise: two rows of one group have a
+  gradient cosine of about 1 / (1 + B), which is 0.003–0.08 at the B of our runs (11–360 rows), so a shared direction appears only after
+  averaging about B rows. Gradients of every row would also cost about four scoring passes over the pool. Prompt groups are a cheap,
+  stable proxy, and B then measures each group in gradient space.
 - Rows in a group need not have similar gradients; their disagreement is what B measures. Splitting a population that is in fact
   homogeneous is harmless, since both parts get about the same B, route and share per row. The risk is the opposite case: two
   populations that look alike in their prompts but learn differently, for example one kind of question answered in short and in long
-  styles, would be merged and their B inflated.
-- That prompt groups are the right units is so far supported only indirectly: domain recovery, distinct B per group and end-to-end
-  results. A direct check in gradient space, comparing the gradient variance explained by prompt groups with random partitions and
-  with clusters of the gradients themselves, is future work.
+  styles, would be merged.
+- That prompt groups are the right units is so far supported only indirectly: domain recovery, distinct B per group and the
+  comparison above. A direct check in gradient space, comparing the difference between the groups' mean gradients with the noise
+  inside the groups, is future work.
 
 ## Constants and where they come from
 

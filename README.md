@@ -72,10 +72,11 @@ points, seed 42). Evidence and limitations: [`docs/method.md`](docs/method.md#6-
 
 <br>
 
-*B* is a property of a set of rows, not of one row. Measured over a whole mixed pool, the difference between kinds of rows (math vs.
-medical) would be counted as noise and inflate *B*, and there would be nothing to allocate shares between. Groups also let the
-measurement use a small sample per group. Prompt groups recover the domains with 97–99% purity and no labels; whether they are the best
-units in gradient space has not been tested directly yet. Details: [`docs/method.md`](docs/method.md#7-why-group-first).
+*B* is a property of a set of rows, not of one row. With one pooled *B* there is one rule for the whole pool and nothing to allocate
+between groups. In our pools the pooled *B* gave the same route as the group values, so the gain of grouping comes from the *n / B*
+shares: on the Llama-3-8B mixed pools a single ranking keeps almost no medical rows and scores 30.36 and 29.70, against 34.61 and
+34.05 with groups (seed 42). Groups also let the measurement use a small sample per group. Prompt groups recover the domains with
+97–99% purity and no labels; whether they are the best units in gradient space has not been tested directly yet. Details: [`docs/method.md`](docs/method.md#7-why-group-first).
 
 </details>
 
