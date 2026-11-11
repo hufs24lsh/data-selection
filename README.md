@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://aclanthology.org/2026.acl-long.486/"><img alt="Baseline: InstructDiff, ACL 2026" src="https://img.shields.io/badge/baseline-InstructDiff%20%C2%B7%20ACL%202026-2A78D6?style=flat-square"></a>
-  <a href="#results"><img alt="End-to-end energy: −53%" src="https://img.shields.io/badge/end--to--end%20energy-%E2%88%9253%25-8D7150?style=flat-square"></a>
+  <a href="#results"><img alt="End-to-end energy: −61% vs full data" src="https://img.shields.io/badge/end--to--end%20energy-%E2%88%9261%25%20vs%20full%20data-8D7150?style=flat-square"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1BAF7A?style=flat-square"></a>
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white">
   <a href="https://github.com/hufs24lsh/data-selection/actions/workflows/ci.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/hufs24lsh/data-selection/ci.yml?branch=main&style=flat-square&label=tests"></a>
@@ -26,7 +26,8 @@
 > [!TIP]
 > **TL;DR.** InstructDiff repeats *calibrate → select → train* three times and keeps the best round. ShallowFrontier calibrates
 > **once**, reads each prompt group's **learning phase** from its gradient noise, and selects differently in each phase. On four
-> testbeds it matches or beats InstructDiff's best round with **53% less end-to-end GPU energy** (seed 42).
+> testbeds it matches or beats InstructDiff's best round with **53% less end-to-end GPU energy** than InstructDiff and **61% less**
+> than training on the full data.
 
 ## News
 

@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://aclanthology.org/2026.acl-long.486/"><img alt="Baseline: InstructDiff, ACL 2026" src="https://img.shields.io/badge/baseline-InstructDiff%20%C2%B7%20ACL%202026-2A78D6?style=flat-square"></a>
-  <a href="#결과"><img alt="End-to-end energy: −53%" src="https://img.shields.io/badge/end--to--end%20energy-%E2%88%9253%25-8D7150?style=flat-square"></a>
+  <a href="#결과"><img alt="End-to-end energy: −61% vs full data" src="https://img.shields.io/badge/end--to--end%20energy-%E2%88%9261%25%20vs%20full%20data-8D7150?style=flat-square"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1BAF7A?style=flat-square"></a>
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white">
   <a href="https://github.com/hufs24lsh/data-selection/actions/workflows/ci.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/hufs24lsh/data-selection/ci.yml?branch=main&style=flat-square&label=tests"></a>
@@ -26,7 +26,7 @@
 > [!TIP]
 > **한 줄 요약.** InstructDiff는 *보정 → 선택 → 학습*을 세 번 반복하고 그중 가장 좋은 회차를 씁니다. ShallowFrontier는 **한 번만**
 > 보정하고, 질문 묶음마다 기울기 잡음으로 **학습 국면**을 읽어 국면에 맞게 다르게 고릅니다. 4개 실험 설정에서 InstructDiff의 최고
-> 회차와 같거나 높은 성능을 내면서 **전 과정 GPU 에너지를 53% 줄였습니다** (seed 42).
+> 회차와 같거나 높은 성능을 내면서 **전 과정 GPU 에너지를 InstructDiff보다 53%, 전체 데이터 학습보다 61% 줄였습니다**.
 
 ## 소식
 
