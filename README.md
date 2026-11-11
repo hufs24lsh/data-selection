@@ -39,6 +39,13 @@
   <img src="assets/pipeline.png" alt="Pipeline: (1) warm-up calibration, (2) label-free grouping, (3) per-group noise scale, (4) allocate and route" width="100%">
 </p>
 
+**Why it matters.** Data selection is meant to save compute, yet its own cost is rarely counted. Once selection compute is included,
+many powerful selection methods are almost never compute-optimal ([Yin & Rush, ICLR 2025](https://arxiv.org/abs/2410.16208)); the
+development runs that are usually left unreported cost about half as much as final training
+([Morrison et al., ICLR 2025](https://arxiv.org/abs/2503.05804)); and efficiency claims without energy numbers are incomplete
+([Chiu, ICML 2026](https://icml.cc/virtual/2026/poster/67123)). We therefore report end-to-end GPU energy, selection included, for
+every method.
+
 ShallowFrontier selects 10% of an instruction-tuning pool for full fine-tuning. Instead of the repeated calibration rounds of
 [InstructDiff](https://aclanthology.org/2026.acl-long.486/) (Su et al., ACL 2026), it runs **one shallow calibration**, groups the
 pool from the **prompts alone**, and measures each group's **learning phase**: whether the group's gradient noise scale *B* is below or

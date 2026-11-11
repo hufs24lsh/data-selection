@@ -39,6 +39,12 @@
   <img src="assets/pipeline.png" alt="파이프라인: (1) 워밍업 보정, (2) 라벨 없는 묶기, (3) 묶음별 잡음 크기, (4) 배분과 경로" width="100%">
 </p>
 
+**왜 중요한가.** 데이터 선별은 계산을 아끼려는 일이지만, 선별 자체의 비용은 잘 따지지 않습니다. 선별 계산까지 포함하면 강력한 선별
+방법 다수가 거의 계산 최적이 아니고([Yin & Rush, ICLR 2025](https://arxiv.org/abs/2410.16208)), 보통 공개되지 않는 개발 과정의
+비용이 최종 학습의 약 절반에 이르며([Morrison 외, ICLR 2025](https://arxiv.org/abs/2503.05804)), 에너지 수치 없는 효율 주장은
+불완전합니다([Chiu, ICML 2026](https://icml.cc/virtual/2026/poster/67123)). 그래서 이 저장소는 모든 방법의 전 과정 GPU 에너지를
+선별까지 포함해 보고합니다.
+
 ShallowFrontier는 지시 학습(instruction tuning) 데이터에서 10%를 골라 전체 미세조정(full fine-tuning)에 씁니다.
 [InstructDiff](https://aclanthology.org/2026.acl-long.486/) (Su et al., ACL 2026)처럼 보정을 여러 회차 반복하는 대신 **얕은 보정을
 한 번만** 하고, **질문(프롬프트)만 보고** 데이터를 묶은 뒤, 묶음마다 **학습 국면**을 잽니다. 학습 국면은 묶음의 기울기 잡음 크기
