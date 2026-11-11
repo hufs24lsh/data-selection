@@ -201,6 +201,22 @@
       "Medical avg": 66.24
      }
     },
+    "random": {
+     "score": 45.54,
+     "kwh": 0.19,
+     "benchmarks": {
+      "MATH500": 55.96,
+      "Minerva": 13.98,
+      "OlympiadBench": 20.61,
+      "AIME24": 4.38,
+      "AMC23": 31.09,
+      "Math avg": 25.21,
+      "MedQA": 62.37,
+      "MMLU-Med": 76.74,
+      "MedMCQA": 58.5,
+      "Medical avg": 65.87
+     }
+    },
     "balanced_random": {
      "score": 46.49,
      "kwh": 0.19,
@@ -218,8 +234,20 @@
      }
     },
     "full": {
-     "score": null,
-     "kwh": null
+     "score": 47.25,
+     "kwh": 1.88,
+     "benchmarks": {
+      "MATH500": 60.99,
+      "Minerva": 20.16,
+      "OlympiadBench": 23.12,
+      "AIME24": 6.26,
+      "AMC23": 32.5,
+      "Math avg": 28.61,
+      "MedQA": 61.43,
+      "MMLU-Med": 77.98,
+      "MedMCQA": 58.28,
+      "Medical avg": 65.9
+     }
     },
     "instructdiff_t1": {
      "score": 47.31,
@@ -308,6 +336,22 @@
       "Medical avg": 62.4
      }
     },
+    "random": {
+     "score": 33.57,
+     "kwh": 0.19,
+     "benchmarks": {
+      "MATH500": 17.67,
+      "Minerva": 6.64,
+      "OlympiadBench": 3.99,
+      "AIME24": 0.41,
+      "AMC23": 6.88,
+      "Math avg": 7.12,
+      "MedQA": 55.77,
+      "MMLU-Med": 68.35,
+      "MedMCQA": 55.96,
+      "Medical avg": 60.03
+     }
+    },
     "balanced_random": {
      "score": 33.55,
      "kwh": 0.2,
@@ -325,8 +369,20 @@
      }
     },
     "full": {
-     "score": null,
-     "kwh": 1.93
+     "score": 34.19,
+     "kwh": 1.93,
+     "benchmarks": {
+      "MATH500": 22.69,
+      "Minerva": 8.14,
+      "OlympiadBench": 5.55,
+      "AIME24": 0.62,
+      "AMC23": 6.88,
+      "Math avg": 8.78,
+      "MedQA": 55.54,
+      "MMLU-Med": 69.08,
+      "MedMCQA": 54.17,
+      "Medical avg": 59.6
+     }
     },
     "instructdiff_t1": {
      "score": 33.95,
@@ -555,6 +611,6 @@
   }
  },
  "notes": {
-  "random": "single-domain pools: uniform random 10%; mixed pools: balanced_random = 10% drawn half from each domain"
+  "random": "random = uniform random 10% (every pool); balanced_random (mixed pools) = 10% drawn half from each domain"
  }
 }

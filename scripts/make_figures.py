@@ -48,11 +48,18 @@ def energy_vs_score(res, out, size=(11.6, 2.9), dpi=220, star=340):   # sized so
         m = tb["methods"]
         rounds = [m["instructdiff_t%d" % r] for r in (1, 2, 3)]
         xs, ys = [r["kwh"] for r in rounds], [r["score"] for r in rounds]
+        full = m.get("full", {}) if m.get("full", {}).get("score") is not None else None
+        shown = ys + [v["score"] for k, v in m.items() if k != "base" and v.get("score") is not None]
+        yr = max(shown) - min(shown)
+        near = full is not None and 0 < full["kwh"] - xs[2] < 0.3 * full["kwh"] and abs(full["score"] - ys[2]) < 0.4 * yr  # full data beside T3
+        level = near and abs(full["score"] - ys[2]) < 0.08 * yr   # ... and at T3's height: T3's label above, full data's below
         ax.plot(xs, ys, color=C_ID, lw=2, solid_capstyle="round", solid_joinstyle="round", zorder=2)
         for r, (x, y) in enumerate(zip(xs, ys), 1):
             _point(ax, x, y, C_ID, "o", 64)
             if r == 1:                                            # labels sit on the side the line does not use
                 at = dict(xytext=(-9, 0), ha="right", va="center")
+            elif r == 3 and level:
+                at = dict(xytext=(0, 10), ha="center", va="bottom")
             elif r == 3:
                 at = dict(xytext=(9, 0), ha="left", va="center")
             elif y > max(ys[0], ys[2]):                           # peak: both lines go down, so the label goes above
@@ -63,15 +70,26 @@ def energy_vs_score(res, out, size=(11.6, 2.9), dpi=220, star=340):   # sized so
                 at = dict(xytext=(9, 0), ha="left", va="center")
             ax.annotate("T%d" % r, (x, y), textcoords="offset points", fontsize=8.5, color=INK2, **at)
         pts = [(x, y) for x, y in zip(xs, ys)]
+        rr = [k for k in ("random", "balanced_random") if m.get(k, {}).get("score") is not None]
         for rk, marker, text, size in (("random", "s", "Random", 60), ("balanced_random", "^", "Balanced random", 90)):
-            if m.get(rk, {}).get("score") is not None:
-                _point(ax, m[rk]["kwh"], m[rk]["score"], C_RAND, marker, size)
-                _label(ax, text, m[rk]["kwh"], m[rk]["score"], ha="left", dx=-6)
-                pts.append((m[rk]["kwh"], m[rk]["score"]))
-        if m.get("full", {}).get("score") is not None:
-            _point(ax, m["full"]["kwh"], m["full"]["score"], C_FULL, "D", 52)
-            _label(ax, "Full data", m["full"]["kwh"], m["full"]["score"])
-            pts.append((m["full"]["kwh"], m["full"]["score"]))
+            if rk in rr:
+                x, y = m[rk]["kwh"], m[rk]["score"]
+                _point(ax, x, y, C_RAND, marker, size)
+                if len(rr) == 2:                        # mixed pools show both randoms, often at one spot: the higher one's
+                    up = y >= m[rr[1 - rr.index(rk)]]["score"]   # label above, the lower one's below, in short lines
+                    ax.annotate(text.replace(" ", "\n"), (x, y), xytext=(-6, 9 if up else -9), textcoords="offset points", ha="left",
+                                va="bottom" if up else "top", fontsize=8.5, color=INK2, linespacing=1.0)
+                else:
+                    _label(ax, text, x, y, ha="left", dx=-6)
+                pts.append((x, y))
+        if full is not None:
+            _point(ax, full["kwh"], full["score"], C_FULL, "D", 52)
+            if near and not level:                                # beside T3, higher or lower: the label goes above, clear of T3's label
+                ax.annotate("Full data", (full["kwh"], full["score"]), xytext=(0, 9), textcoords="offset points", ha="center", va="bottom",
+                            fontsize=8.5, color=INK2)
+            else:
+                _label(ax, "Full data", full["kwh"], full["score"])
+            pts.append((full["kwh"], full["score"]))
         pd = m["shallowfrontier"]
         _point(ax, pd["kwh"], pd["score"], C_PD, "*", star, z=4)
         ax.annotate("SF", (pd["kwh"], pd["score"]), xytext=(0.46 * star ** 0.5, 0.35 * star ** 0.5), textcoords="offset points", fontsize=9, color=INK, fontweight="bold")

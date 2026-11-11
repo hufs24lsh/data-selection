@@ -30,8 +30,8 @@
 
 ## News
 
-- **2026-11-11** · Code, testbed configurations and seed-42 results released.
-  Next: 3-seed means ± std for every testbed, and the full-data and random rows of the mixed pools.
+- **2026-11-11** · Code, testbed configurations and results released: seed-42 tables with full-data and random baselines, and 3-seed
+  means ± std for every testbed.
 
 ## Overview
 
@@ -96,6 +96,8 @@ group, and a short calibration run predicts what the full fine-tune needs.
 
 - **53% less end-to-end GPU energy than InstructDiff** (selection + final fine-tuning, measured with NVML, mean of four testbeds:
   0.55 vs 1.17 kWh). InstructDiff's best round is only known after all three rounds, so its cost is the cost of three rounds.
+- **61% less energy than full-data training** (0.55 vs 1.42 kWh), within 0.3 points of it on the single-domain pools and above it on
+  the mixed pools (seed 42).
 - **Label-free and answer-free.** Base-model hidden states of the prompts give the groups; mixed math + medical pools split into
   groups that are 97–99% pure without any domain tag.
 - **Measured, not tuned.** The routing threshold (*B/b = 1*), the silhouette floor (0.25) and the stopping rule come from theory or
@@ -108,8 +110,7 @@ group, and a short calibration run predicts what the full fine-tune needs.
 ## Results
 
 > [!NOTE]
-> Seed 42, the same seed for every method and testbed. 3-seed means ± std and the remaining rows will be added here and in
-> [`results/`](results/) once the runs finish.
+> Main tables: seed 42 for every method and testbed; 3-seed means ± std (seeds 42–44) are below.
 
 Score = math mean@16 for math, multiple-choice (MCF) accuracy for medical, and their mean for mixed pools; E2E kWh = measured GPU
 energy of selection + final fine-tuning. **Bold**: best 10% selection.
@@ -117,8 +118,8 @@ energy of selection + final fine-tuning. **Bold**: best 10% selection.
 | Method | Qwen2.5-7B · Math 10K | kWh | Llama-3-8B · Medical 10K | kWh | Qwen2.5-7B · Mixed 20K | kWh | Llama-3-8B · Mixed 20K | kWh |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Base model | 12.06 | – | 62.22 | – | 39.15 | – | 32.21 | – |
-| Full data | 29.44 | 1.22 | 59.42 | 0.64 | *pending* | – | *pending* | 1.93 |
-| Random 10% | 24.36 | 0.12 | 58.04 | 0.06 | *pending* | – | *pending* | – |
+| Full data | 29.44 | 1.22 | 59.42 | 0.64 | 47.25 | 1.88 | 34.19 | 1.93 |
+| Random 10% | 24.36 | 0.12 | 58.04 | 0.06 | 45.54 | 0.19 | 33.57 | 0.19 |
 | Balanced random 10% (half per domain) | – | – | – | – | 46.49 | 0.19 | 33.55 | 0.20 |
 | InstructDiff T1 | 26.27 | 0.47 | **59.16** | 0.22 | 47.31 | 0.74 | 33.95 | 0.88 |
 | InstructDiff T2 | 28.16 | 0.64 | 58.70 | 0.34 | 46.64 | 1.10 | 33.57 | 1.31 |
@@ -127,6 +128,21 @@ energy of selection + final fine-tuning. **Bold**: best 10% selection.
 
 - On the medical-only pool ShallowFrontier picks exactly InstructDiff T1's rows (one group, *B/b* > 1), so the scores are equal.
 - On the medical-only pool every fine-tuned model scores below the base model under MCF scoring; selection decides how little is lost.
+
+**3-seed means** (seeds 42–44, mean ± std; **bold**: best 10% selection):
+
+| Method | Qwen2.5-7B · Math 10K | Llama-3-8B · Medical 10K | Qwen2.5-7B · Mixed 20K | Llama-3-8B · Mixed 20K |
+|---|---:|---:|---:|---:|
+| Random 10% | 24.38 ± 0.80 | **58.99 ± 0.83** | – | – |
+| Balanced random 10% (half per domain) | – | – | 46.27 ± 0.44 | 33.85 ± 0.51 |
+| InstructDiff T1 | 26.06 ± 0.28 | 58.58 ± 0.74 | **47.23 ± 0.12** | 33.87 ± 0.08 |
+| InstructDiff T2 | 28.18 ± 0.20 | 58.02 ± 0.60 | 46.07 ± 0.50 | 33.40 ± 0.27 |
+| InstructDiff T3 | 25.31 ± 0.39 | 58.02 ± 0.65 | 47.14 ± 0.11 | 34.05 ± 0.12 |
+| **ShallowFrontier** | **29.13 ± 0.57** | 58.58 ± 0.74 | 47.01 ± 0.32 | **34.15 ± 0.42** |
+
+Against InstructDiff's best round, ShallowFrontier is +0.95 on the math pool and equal on the medical pool (the same rows as T1); on the
+Qwen2.5-7B mixed pool it is 0.22 lower, within seed noise (its seed-to-seed std is 0.32), and on the Llama-3-8B mixed pool +0.10. On the
+medical-only pool random 10% has the highest 3-seed mean.
 
 <p align="center">
   <img src="assets/energy_vs_score.png" alt="Score against end-to-end GPU energy on the four testbeds" width="100%">
@@ -143,6 +159,9 @@ falls to 28.96 (MedQA 35.27, near chance); ShallowFrontier keeps 203 and scores 
 | Balanced random 10% | 33.06 | 0.10 |
 | InstructDiff T1 / T2 / T3 | 33.01 / 33.34 / 28.96 | 0.43 / 0.65 / 0.90 |
 | **ShallowFrontier** | **34.05** | 0.35 |
+
+3-seed means: balanced random 33.41 ± 0.40, InstructDiff T1 / T2 / T3 32.85 ± 0.58 / 33.31 ± 0.47 / 31.20 ± 2.06, ShallowFrontier
+33.81 ± 0.22.
 
 <details>
 <summary><b>Per-benchmark scores (seed 42)</b></summary>
@@ -180,17 +199,21 @@ Generated from `results/seed42.json`. Rows without results yet are omitted.
 | Method | MATH500 | Minerva | OlympiadBench | AIME24 | AMC23 | Math avg | MedQA | MMLU-Med | MedMCQA | Medical avg | Score |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Base model | 26.66 | 8.43 | 8.04 | 1.24 | 15.94 | 12.06 | 61.98 | 78.02 | 58.71 | 66.24 | 39.15 |
-| Balanced random 10% | 57.00 | 15.48 | 22.19 | **6.66** | 35.16 | 27.30 | 61.19 | **77.25** | **58.62** | **65.69** | 46.49 |
-| InstructDiff T1 | 61.02 | 19.45 | **23.86** | 5.84 | 34.48 | 28.93 | 61.82 | 76.89 | 58.37 | **65.69** | 47.31 |
+| Full data | 60.99 | 20.16 | 23.12 | 6.26 | 32.50 | 28.61 | 61.43 | 77.98 | 58.28 | 65.90 | 47.25 |
+| Random 10% | 55.96 | 13.98 | 20.61 | 4.38 | 31.09 | 25.21 | **62.37** | 76.74 | 58.50 | **65.87** | 45.54 |
+| Balanced random 10% | 57.00 | 15.48 | 22.19 | **6.66** | 35.16 | 27.30 | 61.19 | **77.25** | **58.62** | 65.69 | 46.49 |
+| InstructDiff T1 | 61.02 | 19.45 | **23.86** | 5.84 | 34.48 | 28.93 | 61.82 | 76.89 | 58.37 | 65.69 | 47.31 |
 | InstructDiff T2 | 58.01 | 16.86 | 23.44 | 4.99 | 34.84 | 27.63 | 61.43 | 77.04 | 58.47 | 65.65 | 46.64 |
 | InstructDiff T3 | **61.75** | 18.19 | 23.43 | 5.61 | **37.19** | **29.23** | 60.72 | 77.18 | 57.90 | 65.27 | 47.25 |
-| **ShallowFrontier** | 61.44 | **20.24** | 23.71 | 4.78 | 35.47 | 29.13 | **62.22** | 76.82 | 57.85 | 65.63 | **47.38** |
+| **ShallowFrontier** | 61.44 | **20.24** | 23.71 | 4.78 | 35.47 | 29.13 | 62.22 | 76.82 | 57.85 | 65.63 | **47.38** |
 
 **Llama-3-8B · Math+Medical 20K**
 
 | Method | MATH500 | Minerva | OlympiadBench | AIME24 | AMC23 | Math avg | MedQA | MMLU-Med | MedMCQA | Medical avg | Score |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Base model | 3.42 | 2.09 | 1.51 | 0.21 | 2.81 | 2.01 | 58.60 | 71.38 | 57.23 | 62.40 | 32.21 |
+| Full data | 22.69 | 8.14 | 5.55 | 0.62 | 6.88 | 8.78 | 55.54 | 69.08 | 54.17 | 59.60 | 34.19 |
+| Random 10% | 17.67 | 6.64 | 3.99 | 0.41 | 6.88 | 7.12 | 55.77 | 68.35 | 55.96 | 60.03 | 33.57 |
 | Balanced random 10% | 18.49 | **6.99** | 4.17 | 0.21 | 5.47 | 7.07 | 56.25 | 69.70 | 54.17 | 60.04 | 33.55 |
 | InstructDiff T1 | 18.96 | 6.42 | **4.79** | 0.21 | **8.28** | 7.73 | 54.36 | 70.32 | 55.85 | 60.17 | 33.95 |
 | InstructDiff T2 | **19.50** | 5.94 | 4.43 | 0.00 | 7.03 | 7.38 | 54.75 | 70.24 | 54.29 | 59.76 | 33.57 |
