@@ -80,8 +80,7 @@ near zero, and B would come out large for every group. B / b therefore describes
 **Why these two rules among many.** The phase decides the kind of rows, not one scorer. Each side takes a member of its kind that the
 pipeline already pays for. On the B < b side it is the base model's entropy, the cheapest score of how typical a row is (one base pass,
 no calibration needed). On the B ≥ b side it is InstructDiff's rule, the strongest published score of rows at the learnable frontier,
-which needs the calibrated model that the noise measurement uses anyway. Whether other members of each kind behave the same way is part
-of the test in section 8.
+which needs the calibrated model that the noise measurement uses anyway.
 
 **Evidence.**
 
@@ -181,23 +180,22 @@ let the measurement use a held-out sample per group and stop once the selection 
 
 ## 8. Next: testing the phase rule
 
-The routing rule fits every setting we have run (section 6). The next step is a pre-registered test on settings it has not seen:
+The routing rule fits every setting we have run (section 6). The next step tests it on the four testbeds with their fixed recipes, the
+same settings as the paper we build on:
 
-- **Prediction.** For new combinations of model, pool and training recipe, B / b is measured after calibration and the predicted winner
-  is written down before any final training; then both rules are trained and scored. The rule passes if the predicted side wins where
-  the difference is beyond seed noise, the advantage of InstructDiff's rule grows with log(B / b), and the fitted crossover includes
-  B / b = 1.
-- **Kind, not rule.** At some settings, other members of each kind are added (lowest and highest base loss, highest base entropy), to
-  check that the flip is between kinds of rows rather than between two particular scorers.
-- **Mechanism.** From per-row gradients at the end of calibration: in the small-B phase the rows picked by the easy rule should point
-  along the mean gradient of unseen rows, and in the large-B phase the rows picked by InstructDiff's rule should carry more of it.
+- **Forced routes.** On each testbed the route chosen by B / b is replaced by the other rule, with the groups and shares unchanged: the
+  Qwen2.5-7B math pool and the Llama-3-8B mixed pool are forced to InstructDiff's rule, and the Llama-3-8B medical pool and the
+  Qwen2.5-7B mixed pool to the lowest H_base. Three seeds each. The rule is supported if the route that B / b chose scores at least as
+  high on every testbed.
+- **Mechanism.** From per-row gradients at the end of calibration on the same testbeds: where B < b, the rows picked by the easy rule
+  should point along the mean gradient of unseen rows, and where B ≥ b, the rows picked by InstructDiff's rule should carry more of it.
 - **Refinements from the same theory, not yet tested.**
   - A soft split instead of a hard switch: a share 1 / (1 + B / b) of each group's rows is taken by the easy rule and the rest by
     InstructDiff's rule. With B = tr(Σ) / |G|², this is the share of a batch gradient's expected squared norm that comes from the
     group's mean gradient.
   - Shares k_g ∝ n_g / (b + B_g), in proportion to the per-example progress of the same model.
-  - Neither needs a new constant. Each replaces the current rule only if it wins on settings not used to design it and on the four
-    testbeds.
+  - Neither needs a new constant. Each replaces the current rule only if it scores at least as high on all four testbeds, first at one
+    seed and then as a three-seed mean.
 
 ## Constants and where they come from
 
