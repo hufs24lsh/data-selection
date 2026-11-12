@@ -69,7 +69,9 @@ reference answers or data-fitted constants are used.
 The gradient noise scale *B* is the number of examples needed to average out how much per-example gradients disagree. If *B < b*, one
 batch already averages the disagreement away: what is left to learn in the group is a shared direction, typically the answer format,
 and the rows the base model finds easiest show it most cleanly. If *B ≥ b*, rows pull in different directions and carry their own
-content, so InstructDiff's contrast between the base and calibrated models picks the rows that still teach something. On the same Qwen
+content, so InstructDiff's contrast between the base and calibrated models picks the rows that still teach something. Both choices
+follow a known result: SGD gains most from examples that are easy for the target and not yet learned (Weinshall & Amir, 2020), and
+*B / b* tells which of the two decides in a group. On the same Qwen
 math rows, changing the training recipe moves *B / b* from 0.27 to 1.49 and flips the winner between the two rules (+2.22 and −1.84
 points, seed 42). Next, each testbed is rerun with the other rule forced in every group, to test that the route *B / b* picks is the
 better one. Evidence and limitations: [`docs/method.md`](docs/method.md#6-why-two-routes); the test plan:

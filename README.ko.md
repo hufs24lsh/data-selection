@@ -67,7 +67,9 @@ InstructDiff의 대조 엔트로피 순서를 따릅니다. 묶음의 몫은 *n 
 gradient noise scale *B*는 데이터별 gradient가 서로 엇갈리는 정도를 평균 내서 지우는 데 필요한 데이터 수입니다. *B < b*이면 한
 batch 안에서 엇갈림이 이미 지워집니다. 그 group에 남은 학습은 공통 방향(대개 답의 형식)이고, base 모델이 가장 쉽게 여기는 데이터가
 그 방향을 가장 깨끗하게 보여 줍니다. *B ≥ b*이면 데이터마다 다른 방향을 가리키며 각자의 내용을 담고 있어서, base 모델과 calibration
-모델의 차이를 보는 InstructDiff 규칙이 아직 배울 거리가 있는 데이터를 고릅니다. 같은 Qwen 수학 데이터에서 학습 설정만 바꾸면
+모델의 차이를 보는 InstructDiff 규칙이 아직 배울 거리가 있는 데이터를 고릅니다. 두 선택은 알려진 결과에서 나옵니다. SGD는 목표
+기준으로 쉽고 아직 배우지 않은 데이터에서 가장 많이 배우며(Weinshall & Amir, 2020), *B / b*는 group마다 둘 중 무엇이 갈림을
+정하는지 알려 줍니다. 같은 Qwen 수학 데이터에서 학습 설정만 바꾸면
 *B / b*가 0.27에서 1.49로 바뀌고, 이기는 규칙도 뒤집힙니다(+2.22점, −1.84점, seed 42). 다음 단계로, 네 실험 설정에서 group마다
 반대 규칙을 강제로 써 보고 *B / b*가 고른 쪽이 더 나은지 시험합니다. 근거와 한계:
 [`docs/method.md`](docs/method.md#6-why-two-routes) (영문), 시험 계획: [`docs/method.md`](docs/method.md#8-next-testing-the-phase-rule) (영문).
