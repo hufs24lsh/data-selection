@@ -57,37 +57,33 @@ Why the boundary sits at B = b and why each side gets its rule: section 6.
 ## 6. Why two routes
 
 **What B / b measures (theory).** The gradient noise scale B is the number of examples needed to average out how much per-example
-gradients disagree (McCandlish et al., 2018). With a global batch of b examples:
+gradients disagree (McCandlish et al., 2018). For a batch of b rows drawn independently from a group with mean gradient G and
+per-row covariance Σ, the expected squared norm of the batch gradient is |G|² + tr(Σ) / b = |G|² (1 + B / b). B / b is therefore the
+ratio of noise to signal inside one batch:
 
-- **B < b:** one batch already averages the disagreement away. Every step follows the group's shared direction, and training on the
-  group is limited by the number of steps rather than by what individual rows contain.
+- **B < b:** one batch already averages the disagreement away. The group's mean gradient carries most of each step, and in the
+  large-batch model of McCandlish et al. training is limited by the number of steps rather than by what individual rows contain.
 - **B ≥ b:** one batch cannot average it away. Rows pull in different directions, so which rows are in the batch matters.
 
 **Where B is measured.** B grows as the loss falls (McCandlish et al., 2018), so it is measured at the end of calibration, on M_cal,
 with each group's held-out rows. Calibration rows are not used: after three epochs they are close to memorized, their mean gradient is
 near zero, and B would come out large for every group. B / b therefore describes what is left to learn in a group after a 10% run.
 
-**Why each side gets its rule.** Two known results meet here.
+**What each rule rests on.**
 
-- **An example's value has two parts.** Weinshall & Amir (2020) define an example's difficulty as the loss of the optimal hypothesis on
-  it and prove, for linear regression and hinge-loss classification, that SGD converges more slowly on more difficult examples and, at a
-  fixed difficulty, faster on examples the current hypothesis fits worse. Easy-first curricula and hard-example mining are both right;
-  they differ in which part decides.
-- **The phase decides which part counts.** Write each per-row gradient as the group's mean G, the loss the group can still reduce in
-  common, plus a row-specific deviation, which also holds what no model will fit. Early, |G| is large for every row, so rows differ
-  mainly in their deviations, and rows that are easy for the target point along G. Later, G has shrunk and typical rows are learned; the
-  rows worth training on are those whose loss can be reduced but has not been yet, the criterion that RHO-LOSS formalizes (Mindermann
-  et al., 2022). B = tr(Σ) / |G|² is the ratio of the deviations to the common part, and it grows as the loss falls (McCandlish et al.,
-  2018). Against the batch, B < b means a batch averages the deviations away and the update follows G (the early phase), and B ≥ b
-  means the deviations decide what a batch teaches (the late phase).
-- **Each rule is a cheap measure of its part.** The lowest H_base stands for "easy for the target": rows a strongly pretrained model
-  already predicts with confidence fit the target well, and the score needs one base pass and no calibration. InstructDiff's rule is a
-  published selector for "learnable, not yet learned", which it calls the learnable frontier. M_cal was trained on a random 10% of the
-  pool, so for the other rows it shows what other data teach. Trimming both tails of ΔNLL drops the rows whose loss calibration changed
-  most in either direction, and the lowest ΔH then prefers rows whose uncertainty calibration did not remove. M_cal is needed for the
-  noise measurement anyway.
-- The same flip appears as a function of the budget in data pruning and active learning (Sorscher et al., 2022; Hacohen et al., 2022).
-  B / b reads the phase per group, from one calibration run, instead of fixing it per dataset.
+- **Above the boundary, InstructDiff's rule.** It is a published selector for rows that are learnable but not yet learned, which
+  InstructDiff calls the learnable frontier. M_cal was trained on a random 10% of the pool, so for the other rows it shows what other
+  data teach. Trimming both tails of ΔNLL drops the rows whose loss calibration changed most in either direction, and the lowest ΔH then
+  prefers rows whose uncertainty calibration did not remove. M_cal is needed for the noise measurement anyway. Measured at the end of
+  calibration (four calibration models, seed 42), the rows this rule picks carry per-row gradients 1.1–1.7 times as large as those of
+  random rows, in all seven groups. Favoring large-gradient rows is the basic move of importance sampling, and its gain grows with the
+  gradient noise (Katharopoulos & Fleuret, 2018; Johnson & Guestrin, 2018), so the rule should pay off more as B / b grows.
+- **Below the boundary, the lowest H_base.** Rows that a strongly pretrained model already predicts with confidence win in our runs
+  below the boundary, and the score needs one base pass and no calibration. Why they win is under study; the route rests on the
+  measured regularity below.
+- The same flip appears as a function of the budget in data pruning and active learning (Sorscher et al., 2022; Hacohen et al., 2022)
+  and in LLM fine-tuning (Liu et al., 2026). B / b reads the regime per group, from one calibration run, at a fixed budget, instead of
+  fixing it per dataset.
 
 **Evidence.**
 
@@ -109,9 +105,8 @@ near zero, and B would come out large for every group. B / b therefore describes
 
 **Limitations.**
 
-- The threshold B / b = 1 comes from the critical batch size. The account above explains the pairing of phases and rules but is not a
-  proof: the two-part result is proved for convex losses, the phase argument extends it, and the two scores approximate its two parts.
-  Section 8 tests the pairing and, through per-row gradients, the approximations.
+- The threshold B / b = 1 is where the noise inside one batch equals its signal. It is a natural boundary, not a proven optimal
+  switch point, and the change between the two regimes is gradual.
 - On Llama-3-8B the development evidence was weaker: a few small groups pointed the other way.
 - In every mixed pool the math group had a smaller B than the medical group, so a domain effect is not fully separated from the noise
   effect. The Qwen pools, where math groups fall on both sides, are the main evidence against a domain-only rule.
@@ -186,24 +181,10 @@ let the measurement use a held-out sample per group and stop once the selection 
   comparison above. A direct check in gradient space, comparing the difference between the groups' mean gradients with the noise
   inside the groups, is future work.
 
-## 8. Next: testing the phase rule
+## 8. Next
 
-The routing rule fits every setting we have run (section 6). The next step tests it on the four testbeds with their fixed recipes, the
-same settings as the paper we build on:
-
-- **Forced routes.** On each testbed the route chosen by B / b is replaced by the other rule, with the groups and shares unchanged: the
-  Qwen2.5-7B math pool and the Llama-3-8B mixed pool are forced to InstructDiff's rule, and the Llama-3-8B medical pool and the
-  Qwen2.5-7B mixed pool to the lowest H_base. Three seeds each. The rule is supported if the route that B / b chose scores at least as
-  high on every testbed.
-- **Mechanism.** From per-row gradients at the end of calibration on the same testbeds: where B < b, the rows picked by the easy rule
-  should point along the mean gradient of unseen rows, and where B ≥ b, the rows picked by InstructDiff's rule should carry more of it.
-- **Refinements from the same theory, not yet tested.**
-  - A soft split instead of a hard switch: a share 1 / (1 + B / b) of each group's rows is taken by the easy rule and the rest by
-    InstructDiff's rule. With B = tr(Σ) / |G|², this is the share of a batch gradient's expected squared norm that comes from the
-    group's mean gradient.
-  - Shares k_g ∝ n_g / (b + B_g), in proportion to the per-example progress of the same model.
-  - Neither needs a new constant. Each replaces the current rule only if it scores at least as high on all four testbeds, first at one
-    seed and then as a three-seed mean.
+The same recipes and end-to-end energy accounting will be applied to more model families and pool types, including a general
+instruction pool.
 
 ## Constants and where they come from
 
@@ -221,11 +202,13 @@ None of them is fitted to our pools.
 ## References
 
 - G. Hacohen, A. Dekel and D. Weinshall. Active Learning on a Budget: Opposite Strategies Suit High and Low Budgets. ICML 2022.
+- T. B. Johnson and C. Guestrin. Training Deep Models Faster with Robust, Approximate Importance Sampling. NeurIPS 2018.
+- A. Katharopoulos and F. Fleuret. Not All Samples Are Created Equal: Deep Learning with Importance Sampling. ICML 2018.
 - L. Kaufman and P. J. Rousseeuw. Finding Groups in Data: An Introduction to Cluster Analysis. Wiley, 1990.
+- S. Liu, T. Chen, X. Li, Y. Wang and J. Zhang. Data Difficulty and the Generalization–Extrapolation Tradeoff in LLM Fine-Tuning.
+  ICML 2026.
 - S. McCandlish, J. Kaplan, D. Amodei and the OpenAI Dota Team. An Empirical Model of Large-Batch Training. arXiv:1812.06162, 2018.
 - B. Sorscher, R. Geirhos, S. Shekhar, S. Ganguli and A. S. Morcos. Beyond Neural Scaling Laws: Beating Power Law Scaling via Data
   Pruning. NeurIPS 2022.
-- S. Mindermann et al. Prioritized Training on Points that are Learnable, Worth Learning, and Not Yet Learnt. ICML 2022.
 - J. Su et al. InstructDiff: Domain-Adaptive Data Selection via Contrastive Entropy for Efficient LLM Fine-Tuning. ACL 2026.
   [aclanthology.org/2026.acl-long.486](https://aclanthology.org/2026.acl-long.486/)
-- D. Weinshall and D. Amir. Theory of Curriculum Learning, with Convex Loss Functions. JMLR 21, 2020.
