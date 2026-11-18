@@ -38,24 +38,29 @@ def token_entropy_nll(model, full, labels, prompt_len, target_len, chunk=CHUNK):
     return H, N
 
 
-def record(Hb, Nb, Hc, Nc):
-    """scored.jsonl fields from per-token base (b) and calibrated (c) statistics; means in float64."""
+def record(Hb, Nb, Hc=None, Nc=None):
+    """scored.jsonl fields from per-token base (b) and calibrated (c) statistics; means in float64. No calibrated pass -> null fields."""
     mean = lambda x: float(x.double().mean())
+    if Hc is None:
+        return dict(n_tokens=int(Hb.numel()), base_nll=mean(Nb), base_avg_entropy=mean(Hb), instruct_nll=None,
+                    instruct_avg_entropy=None, diff_nll=None, diff_entropy=None)
     return dict(n_tokens=int(Hb.numel()), base_nll=mean(Nb), base_avg_entropy=mean(Hb), instruct_nll=mean(Nc),
                 instruct_avg_entropy=mean(Hc), diff_nll=mean(Nb - Nc), diff_entropy=mean(Hb - Hc))
 
 
-def score(base_model, calibrated_model, tokenizer, rows, template=None, max_length=2048):
-    """One scored record per row (None for a skipped row), in row order."""
+def score(base_model, calibrated_model, tokenizer, rows, template=None, max_length=2048, need=None):
+    """One scored record per row (None for a skipped row), in row order. need: the row indices that also get the calibrated pass
+    (None: every row; an empty set: no row, and calibrated_model may then be None). The other rows get the base pass only,
+    which is all the light route reads (base_avg_entropy)."""
     from .data import prompt_of, response_of
     out = []
-    for r in rows:
+    for i, r in enumerate(rows):
         e = encode(tokenizer, prompt_of(r, template), response_of(r), max_length)
         if e is None:
             out.append(None)
             continue
         Hb, Nb = token_entropy_nll(base_model, *e)
-        Hc, Nc = token_entropy_nll(calibrated_model, *e)
+        Hc, Nc = token_entropy_nll(calibrated_model, *e) if need is None or i in need else (None, None)
         out.append(dict(record(Hb, Nb, Hc, Nc), instruction=r.get("instruction", ""), input=r.get("input", ""),
                         response=response_of(r)))
     return out

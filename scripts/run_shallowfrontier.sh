@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end ShallowFrontier on one testbed:
-#   calibration subset -> calibration training -> scoring -> prompt features -> grouping -> noise -> selection -> final training -> evaluation
+#   calibration subset -> calibration training -> prompt features -> grouping -> noise -> scoring -> selection -> final training -> evaluation
+#   (scoring comes after the noise step: groups with B/b < 1 need only the base pass, so the calibrated pass runs only where B/b >= 1)
 # Usage:  bash scripts/run_shallowfrontier.sh configs/testbeds/qwen_mix20k.yaml [seed (42)] [work dir (runs/<config>_s<seed>)]
 # Training uses the visible GPUs (two in the paper); feature extraction, scoring and noise measurement use the first visible GPU.
 set -euo pipefail
@@ -24,15 +25,16 @@ step "1/9 calibration subset"
 python -m shallowfrontier.cli calibration --pool "$POOL" --k "$CAL_K" --limit "$CAL_LIMIT" --seed "$SEED" --out "$W/calibration.jsonl"
 step "2/9 calibration training"
 python scripts/train.py --model "$BASE" --data "$W/calibration.jsonl" --out "$W/calibration_model" --lr "$LR" --batch "$B" --max-length "$LEN" --seed "$SEED"
-step "3/9 scoring (base vs calibrated)"
-python -m shallowfrontier.cli score --base "$BASE" --calibrated "$W/calibration_model" --pool "$POOL" ${TPL[@]+"${TPL[@]}"} --out "$W/scored.jsonl"
-step "4/9 prompt features"
+step "3/9 prompt features"
 python -m shallowfrontier.cli features --model "$BASE" --pool "$POOL" ${TPL[@]+"${TPL[@]}"} --out "$W/features.npy"
-step "5/9 grouping"
+step "4/9 grouping"
 python -m shallowfrontier.cli group --features "$W/features.npy" --out "$W/groups.json"
-step "6/9 noise measurement"
+step "5/9 noise measurement"
 python -m shallowfrontier.cli noise --model "$W/calibration_model" --tokenizer "$BASE" --pool "$POOL" --calibration "$W/calibration.jsonl" \
   --groups "$W/groups.json" --k "$K" --batch "$B" --seed "$SEED" --max-length "$LEN" ${TPL[@]+"${TPL[@]}"} --out "$W/noise.json"
+step "6/9 scoring (base pass; calibrated pass only on groups with B/b >= 1)"
+python -m shallowfrontier.cli score --base "$BASE" --calibrated "$W/calibration_model" --pool "$POOL" ${TPL[@]+"${TPL[@]}"} \
+  --groups "$W/groups.json" --noise "$W/noise.json" --out "$W/scored.jsonl"
 step "7/9 selection"
 python -m shallowfrontier.cli select --pool "$POOL" --scores "$W/scored.jsonl" --groups "$W/groups.json" --noise "$W/noise.json" \
   --k "$K" --batch "$B" --out "$W/selected.jsonl"

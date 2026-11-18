@@ -3,9 +3,10 @@
   calibration  draw the calibration subset (InstructDiff's warm-up rule: random.seed(seed); random.sample(pool[:limit], k))
   features     prompt-only hidden states of the base model (GPU)
   group        label-free grouping of the features (CPU)
-  score        InstructDiff scores of the pool under the base and the calibrated model (GPU); InstructDiff's own round-1
-               scored.jsonl can be used instead
   noise        per-group gradient noise scale on the calibrated model, measured until the selection is settled (one GPU)
+  score        InstructDiff scores of the pool (GPU): the base pass on every row and, given --groups and --noise, the calibrated
+               pass only on groups with B_g / b >= 1 (without them, on every row as InstructDiff does); InstructDiff's own
+               round-1 scored.jsonl can be used instead
   select       shares n_g / B_g and routes B_g / b -> the selected subset
 Every step refuses to overwrite an existing output.
 """
@@ -72,10 +73,26 @@ def cmd_group(a):
         print("  %s: %d rows" % (g, len(m)))
 
 
+def calibrated_rows(groups, noise):
+    """Pool indices whose group takes the InstructDiff route (B_g / b >= 1, b = the batch the noise was measured at): the only rows
+    whose selection reads the calibrated pass."""
+    from .selection import ORDER, routes
+    route = routes({g: noise["groups"][g]["B"] for g in groups}, noise["batch"])
+    return {j for g, members in groups.items() if route[g] == ORDER for j in members}
+
+
 def cmd_score(a):
     from .scoring import score
+    rows = read_jsonl(a.pool)
+    need = None
+    if a.groups or a.noise:
+        if not (a.groups and a.noise):
+            sys.exit("--groups and --noise go together")
+        need = calibrated_rows(json.load(open(a.groups)), json.load(open(a.noise)))
+        print("calibrated pass on %d of %d rows (groups with B/b >= 1)" % (len(need), len(rows)))
     tok = _tokenizer(a.base, 4096)
-    recs = score(_model(a.base, "float16").eval(), _model(a.calibrated, "float16").eval(), tok, read_jsonl(a.pool), a.template, a.max_length)
+    cal = _model(a.calibrated, "float16").eval() if need is None or need else None
+    recs = score(_model(a.base, "float16").eval(), cal, tok, rows, a.template, a.max_length, need)
     kept = [r for r in recs if r is not None]
     write_lines(_fresh(a.out), [json.dumps(r, ensure_ascii=False) for r in kept])
     print("scored %d rows (%d skipped by the length rule) -> %s" % (len(kept), len(recs) - len(kept), a.out))
@@ -133,6 +150,8 @@ def main(argv=None):
     p = sub.add_parser("score"); p.set_defaults(fn=cmd_score)
     p.add_argument("--base", required=True); p.add_argument("--calibrated", required=True); p.add_argument("--pool", required=True)
     p.add_argument("--template", **tmpl); p.add_argument("--max-length", type=int, default=2048); p.add_argument("--out", required=True)
+    p.add_argument("--groups", default=None, help="with --noise: the calibrated pass only on groups with B/b >= 1")
+    p.add_argument("--noise", default=None, help="the noise step's output (its B per group and batch b)")
 
     p = sub.add_parser("noise"); p.set_defaults(fn=cmd_noise)
     p.add_argument("--model", required=True, help="the calibrated model"); p.add_argument("--tokenizer", default=None, help="default: --model")

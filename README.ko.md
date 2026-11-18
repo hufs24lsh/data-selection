@@ -268,7 +268,7 @@ python scripts/make_mixed_pools.py
 
 ### 실험 설정 하나 실행
 
-처음부터 끝까지(보정 → 채점 → 묶기 → 잡음 측정 → 선택 → 최종 미세조정 → 평가):
+처음부터 끝까지(보정 → 묶기 → 잡음 측정 → 채점 → 선택 → 최종 미세조정 → 평가):
 
 ```bash
 bash scripts/run_shallowfrontier.sh configs/testbeds/qwen_mix20k.yaml 42
@@ -287,8 +287,7 @@ bash scripts/run_shallowfrontier.sh configs/testbeds/qwen_mix20k.yaml 42
 python -m shallowfrontier.cli calibration --pool data/mixed/math10k_med10k_seed42.jsonl --k 2000 --limit 20000 --seed 42 --out runs/x/calibration.jsonl
 python scripts/train.py --model Qwen/Qwen2.5-7B --data runs/x/calibration.jsonl --out runs/x/calibration_model --lr 2e-5 --batch 64 --max-length 2048
 
-# 2. InstructDiff 점수(기본 모델 대 보정 모델)와 질문만 보는 묶기
-python -m shallowfrontier.cli score    --base Qwen/Qwen2.5-7B --calibrated runs/x/calibration_model --pool data/mixed/math10k_med10k_seed42.jsonl --out runs/x/scored.jsonl
+# 2. 질문만 보는 묶기
 python -m shallowfrontier.cli features --model Qwen/Qwen2.5-7B --pool data/mixed/math10k_med10k_seed42.jsonl --out runs/x/features.npy
 python -m shallowfrontier.cli group    --features runs/x/features.npy --out runs/x/groups.json
 
@@ -296,13 +295,18 @@ python -m shallowfrontier.cli group    --features runs/x/features.npy --out runs
 python -m shallowfrontier.cli noise --model runs/x/calibration_model --tokenizer Qwen/Qwen2.5-7B --pool data/mixed/math10k_med10k_seed42.jsonl \
     --calibration runs/x/calibration.jsonl --groups runs/x/groups.json --k 2000 --batch 64 --seed 42 --out runs/x/noise.json
 
-# 4. 몫 n/B와 경로 B/b로 10% 선택, 그다음 최종 미세조정
+# 4. 점수: 기본 모델 채점은 모든 행, 보정 모델 채점은 B/b ≥ 1인 묶음만
+python -m shallowfrontier.cli score --base Qwen/Qwen2.5-7B --calibrated runs/x/calibration_model --pool data/mixed/math10k_med10k_seed42.jsonl \
+    --groups runs/x/groups.json --noise runs/x/noise.json --out runs/x/scored.jsonl
+
+# 5. 몫 n/B와 경로 B/b로 10% 선택, 그다음 최종 미세조정
 python -m shallowfrontier.cli select --pool data/mixed/math10k_med10k_seed42.jsonl --scores runs/x/scored.jsonl --groups runs/x/groups.json \
     --noise runs/x/noise.json --k 2000 --batch 64 --out runs/x/selected.jsonl
 python scripts/train.py --model Qwen/Qwen2.5-7B --data runs/x/selected.jsonl --out runs/x/final_model --lr 2e-5 --batch 64 --max-length 2048
 ```
 
-InstructDiff의 1회차 `scored.jsonl`로 2단계의 채점을 대신할 수 있습니다. 우리 실행은 이 파일을 썼습니다.
+InstructDiff의 1회차 `scored.jsonl`로 4단계의 채점을 대신할 수 있습니다. 우리 실행은 이 파일을 썼습니다. 채점을 잡음 측정 뒤에
+두어 B/b < 1인 묶음은 보정 모델 채점을 건너뜁니다. 보고한 에너지는 경로마다 필요한 채점만 셉니다.
 
 </details>
 

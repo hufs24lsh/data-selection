@@ -37,19 +37,24 @@ def shares(groups, B, k):
     return kg, {g: w[g] / tot for g in groups}
 
 
+def routes(B, b):
+    """{group: route}: B_g / b < 1 -> LIGHT (needs only the base pass), otherwise ORDER (needs the calibrated pass too)."""
+    return {g: LIGHT if B[g] / b < 1 else ORDER for g in B}
+
+
 def select(groups, B, scores, k, b):
     """groups {name: [pool indices]}, B {name: noise scale}, scores {pool index: scored record} -> (sorted pool indices, per-group info)."""
     kg, share = shares(groups, B, k)
+    route_of = routes({g: B[g] for g in groups}, b)
     picked, info = [], {}
     for g, members in groups.items():
         ratio = B[g] / b
-        if ratio < 1:
+        route = route_of[g]
+        if route == LIGHT:
             pick = sorted((j for j in members if finite(scores[j].get("base_avg_entropy"))),
                           key=lambda j: (scores[j]["base_avg_entropy"], j))[:kg[g]]
-            route = LIGHT
         else:
             pick = count_rule(members, scores, kg[g])
-            route = ORDER
         if len(pick) != kg[g]:
             raise ValueError("group %s: %d usable rows for %d picks" % (g, len(pick), kg[g]))
         picked += pick

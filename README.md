@@ -272,7 +272,7 @@ Details and checksums: [`data/README.md`](data/README.md).
 
 ### Run one testbed
 
-End to end (calibration → scoring → grouping → noise → selection → final fine-tuning → evaluation):
+End to end (calibration → grouping → noise → scoring → selection → final fine-tuning → evaluation):
 
 ```bash
 bash scripts/run_shallowfrontier.sh configs/testbeds/qwen_mix20k.yaml 42
@@ -291,8 +291,7 @@ feature extraction, scoring and noise measurement.
 python -m shallowfrontier.cli calibration --pool data/mixed/math10k_med10k_seed42.jsonl --k 2000 --limit 20000 --seed 42 --out runs/x/calibration.jsonl
 python scripts/train.py --model Qwen/Qwen2.5-7B --data runs/x/calibration.jsonl --out runs/x/calibration_model --lr 2e-5 --batch 64 --max-length 2048
 
-# 2. InstructDiff scores (base vs calibrated) and prompt-only grouping
-python -m shallowfrontier.cli score    --base Qwen/Qwen2.5-7B --calibrated runs/x/calibration_model --pool data/mixed/math10k_med10k_seed42.jsonl --out runs/x/scored.jsonl
+# 2. Prompt-only grouping
 python -m shallowfrontier.cli features --model Qwen/Qwen2.5-7B --pool data/mixed/math10k_med10k_seed42.jsonl --out runs/x/features.npy
 python -m shallowfrontier.cli group    --features runs/x/features.npy --out runs/x/groups.json
 
@@ -300,13 +299,18 @@ python -m shallowfrontier.cli group    --features runs/x/features.npy --out runs
 python -m shallowfrontier.cli noise --model runs/x/calibration_model --tokenizer Qwen/Qwen2.5-7B --pool data/mixed/math10k_med10k_seed42.jsonl \
     --calibration runs/x/calibration.jsonl --groups runs/x/groups.json --k 2000 --batch 64 --seed 42 --out runs/x/noise.json
 
-# 4. Shares n/B and routes B/b -> the selected 10%, then the final fine-tune
+# 4. Scores: the base pass on every row, the calibrated pass only on groups with B/b >= 1
+python -m shallowfrontier.cli score --base Qwen/Qwen2.5-7B --calibrated runs/x/calibration_model --pool data/mixed/math10k_med10k_seed42.jsonl \
+    --groups runs/x/groups.json --noise runs/x/noise.json --out runs/x/scored.jsonl
+
+# 5. Shares n/B and routes B/b -> the selected 10%, then the final fine-tune
 python -m shallowfrontier.cli select --pool data/mixed/math10k_med10k_seed42.jsonl --scores runs/x/scored.jsonl --groups runs/x/groups.json \
     --noise runs/x/noise.json --k 2000 --batch 64 --out runs/x/selected.jsonl
 python scripts/train.py --model Qwen/Qwen2.5-7B --data runs/x/selected.jsonl --out runs/x/final_model --lr 2e-5 --batch 64 --max-length 2048
 ```
 
-InstructDiff's own round-1 `scored.jsonl` can replace step 2's scoring; our runs used it.
+InstructDiff's own round-1 `scored.jsonl` can replace step 4's scoring; our runs used it. Scoring follows the noise step so that groups
+with B/b < 1 skip the calibrated pass; the reported energy counts the passes each route needs.
 
 </details>
 
